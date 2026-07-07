@@ -1,4 +1,4 @@
-package com.chatop.api.controllers;
+package com.chatop.api.controller;
 
 import java.util.Map;
 
