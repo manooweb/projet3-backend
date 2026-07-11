@@ -37,3 +37,17 @@ Expected response:
   "status": "OK"
 }
 ```
+
+## API documentation
+
+Swagger UI is available here:
+
+```text
+http://localhost:9001/swagger-ui.html
+```
+
+The generated OpenAPI contract is available here:
+
+```text
+http://localhost:9001/v3/api-docs
+```

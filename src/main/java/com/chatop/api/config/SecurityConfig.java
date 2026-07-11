@@ -15,7 +15,14 @@ public class SecurityConfig {
             .formLogin(formLogin -> formLogin.disable())
             .httpBasic(httpBasic -> httpBasic.disable())
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/api/health").permitAll()
+                .requestMatchers(
+                    "/",
+                    "/api/health",
+                    "/v3/api-docs",
+                    "/v3/api-docs/**",
+                    "/swagger-ui.html",
+                    "/swagger-ui/**"
+                ).permitAll()
                 .anyRequest().permitAll())
             .build();
     }
