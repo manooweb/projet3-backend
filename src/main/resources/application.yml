@@ -11,6 +11,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     open-in-view: false
   web:
     error:
@@ -23,6 +25,11 @@ spring:
 
 server:
   port: 9001
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-key-change-me-please-dev-secret-key}
+    expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
 
 springdoc:
   api-docs:
