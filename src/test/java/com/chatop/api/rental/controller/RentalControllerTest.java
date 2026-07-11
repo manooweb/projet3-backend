@@ -2,6 +2,7 @@ package com.chatop.api.rental.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,6 +29,7 @@ import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
 import com.chatop.api.rental.dto.RentalSummaryResponse;
 import com.chatop.api.rental.dto.RentalsResponse;
+import com.chatop.api.rental.dto.UpdateRentalRequest;
 import com.chatop.api.rental.service.RentalService;
 
 @WebMvcTest(RentalController.class)
@@ -124,6 +126,66 @@ class RentalControllerTest {
     void createReturnsBadRequestWhenRequiredFieldsAreMissing() throws Exception {
         mockMvc.perform(multipart("/api/rentals")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
+                .with(jwt().jwt(token -> token.claim("userId", 1))))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateReturnsSuccessMessageWithoutPicture() throws Exception {
+        when(rentalService.update(eq(1), any(UpdateRentalRequest.class), nullable(Authentication.class)))
+            .thenReturn(new RentalResponse("Rental updated !"));
+
+        mockMvc.perform(multipart("/api/rentals/1")
+                .param("name", "House")
+                .param("surface", "120")
+                .param("price", "950")
+                .param("picture", "")
+                .param("description", "A nice house")
+                .with(request -> {
+                    request.setMethod("PUT");
+                    return request;
+                })
+                .with(jwt().jwt(token -> token
+                    .subject("test@example.com")
+                    .claim("userId", 1))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message", is("Rental updated !")));
+
+        verify(rentalService).update(eq(1), any(UpdateRentalRequest.class), nullable(Authentication.class));
+    }
+
+    @Test
+    void updateReturnsSuccessMessageWithPicture() throws Exception {
+        when(rentalService.update(eq(1), any(UpdateRentalRequest.class), nullable(Authentication.class)))
+            .thenReturn(new RentalResponse("Rental updated !"));
+
+        mockMvc.perform(multipart("/api/rentals/1")
+                .file(picture())
+                .param("name", "House")
+                .param("surface", "120")
+                .param("price", "950")
+                .param("description", "A nice house")
+                .with(request -> {
+                    request.setMethod("PUT");
+                    return request;
+                })
+                .with(jwt().jwt(token -> token
+                    .subject("test@example.com")
+                    .claim("userId", 1))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message", is("Rental updated !")));
+
+        verify(rentalService).update(eq(1), any(UpdateRentalRequest.class), nullable(Authentication.class));
+    }
+
+    @Test
+    void updateReturnsBadRequestWhenRequiredFieldsAreMissing() throws Exception {
+        mockMvc.perform(multipart("/api/rentals/1")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .with(request -> {
+                    request.setMethod("PUT");
+                    return request;
+                })
                 .with(jwt().jwt(token -> token.claim("userId", 1))))
             .andExpect(status().isBadRequest());
     }

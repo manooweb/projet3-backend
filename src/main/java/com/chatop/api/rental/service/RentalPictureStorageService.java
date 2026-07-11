@@ -2,6 +2,8 @@ package com.chatop.api.rental.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.Normalizer;
@@ -50,6 +52,20 @@ public class RentalPictureStorageService {
         }
 
         return publicUrl(filename);
+    }
+
+    public void delete(String pictureUrl) {
+        Optional<Path> picturePath = localPicturePath(pictureUrl);
+
+        if (picturePath.isEmpty()) {
+            return;
+        }
+
+        try {
+            Files.deleteIfExists(picturePath.get());
+        } catch (IOException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not delete picture", exception);
+        }
     }
 
     private void validatePicture(MultipartFile picture) {
@@ -108,6 +124,33 @@ public class RentalPictureStorageService {
         }
 
         return Optional.of(filename.substring(extensionIndex + 1).toLowerCase(Locale.ROOT));
+    }
+
+    private Optional<Path> localPicturePath(String pictureUrl) {
+        if (pictureUrl == null || pictureUrl.isBlank()) {
+            return Optional.empty();
+        }
+
+        String path;
+
+        try {
+            path = new URI(pictureUrl).getPath();
+        } catch (URISyntaxException exception) {
+            return Optional.empty();
+        }
+
+        if (path == null || !path.startsWith(RENTAL_PICTURE_URL_PATH)) {
+            return Optional.empty();
+        }
+
+        String filename = Path.of(path).getFileName().toString();
+        Path picturePath = rentalUploadsPath.resolve(filename).normalize();
+
+        if (!picturePath.startsWith(rentalUploadsPath)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(picturePath);
     }
 
     private String publicUrl(String filename) {

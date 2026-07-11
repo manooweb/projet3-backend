@@ -1,5 +1,6 @@
 package com.chatop.api.rental.service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
 import com.chatop.api.rental.dto.RentalSummaryResponse;
 import com.chatop.api.rental.dto.RentalsResponse;
+import com.chatop.api.rental.dto.UpdateRentalRequest;
 import com.chatop.api.rental.model.Rental;
 import com.chatop.api.rental.repository.RentalRepository;
 import com.chatop.api.user.model.User;
@@ -22,6 +24,7 @@ import com.chatop.api.user.repository.UserRepository;
 public class RentalService {
 
     private static final String RENTAL_CREATED_MESSAGE = "Rental created !";
+    private static final String RENTAL_UPDATED_MESSAGE = "Rental updated !";
 
     private final RentalRepository rentalRepository;
     private final UserRepository userRepository;
@@ -71,6 +74,39 @@ public class RentalService {
         rentalRepository.save(rental);
 
         return new RentalResponse(RENTAL_CREATED_MESSAGE);
+    }
+
+    @Transactional
+    public RentalResponse update(Integer id, UpdateRentalRequest request, Authentication authentication) {
+        Rental rental = rentalRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rental not found"));
+
+        if (!rental.getOwner().getId().equals(userIdFromToken(authentication))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
+
+        String oldPictureUrl = rental.getPicture();
+        String pictureUrl = oldPictureUrl;
+
+        if (request.getPicture() != null && !request.getPicture().isEmpty()) {
+            pictureUrl = rentalPictureStorageService.store(request.getPicture());
+        }
+
+        rental.update(
+            request.getName().trim(),
+            request.getSurface(),
+            request.getPrice(),
+            pictureUrl,
+            request.getDescription().trim()
+        );
+
+        rentalRepository.save(rental);
+
+        if (!Objects.equals(pictureUrl, oldPictureUrl)) {
+            rentalPictureStorageService.delete(oldPictureUrl);
+        }
+
+        return new RentalResponse(RENTAL_UPDATED_MESSAGE);
     }
 
     private RentalSummaryResponse toSummaryResponse(Rental rental) {

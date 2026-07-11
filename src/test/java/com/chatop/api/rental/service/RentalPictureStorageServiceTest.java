@@ -88,6 +88,28 @@ class RentalPictureStorageServiceTest {
             .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
+    @Test
+    void deleteRemovesLocalPictureFromPublicUrl() throws Exception {
+        Path picturePath = uploadsPath.resolve("house.jpg");
+        Files.writeString(picturePath, "image-content");
+        RentalPictureStorageService storageService = new RentalPictureStorageService(uploadsPath.toString());
+
+        storageService.delete("http://localhost:9001/api/uploads/rentals/house.jpg");
+
+        assertThat(Files.exists(picturePath)).isFalse();
+    }
+
+    @Test
+    void deleteIgnoresExternalPictureUrl() throws Exception {
+        Path picturePath = uploadsPath.resolve("house.jpg");
+        Files.writeString(picturePath, "image-content");
+        RentalPictureStorageService storageService = new RentalPictureStorageService(uploadsPath.toString());
+
+        storageService.delete("https://example.com/uploads/house.jpg");
+
+        assertThat(Files.exists(picturePath)).isTrue();
+    }
+
     private void mockCurrentRequest() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setScheme("http");

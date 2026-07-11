@@ -75,6 +75,20 @@ public class Rental {
         this.owner = owner;
     }
 
+    public void update(
+        String name,
+        Long surface,
+        Long price,
+        String picture,
+        String description
+    ) {
+        this.name = name;
+        this.surface = surface;
+        this.price = price;
+        this.picture = picture;
+        this.description = description;
+    }
+
     @PrePersist
     void onCreate() {
         LocalDateTime now = LocalDateTime.now();

@@ -29,6 +29,7 @@ import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
 import com.chatop.api.rental.dto.RentalSummaryResponse;
 import com.chatop.api.rental.dto.RentalsResponse;
+import com.chatop.api.rental.dto.UpdateRentalRequest;
 import com.chatop.api.rental.model.Rental;
 import com.chatop.api.rental.repository.RentalRepository;
 import com.chatop.api.user.model.User;
@@ -180,6 +181,80 @@ class RentalServiceTest {
         verify(rentalRepository, never()).save(any(Rental.class));
     }
 
+    @Test
+    void updateChangesRentalWithoutReplacingPicture() {
+        Rental rental = rentalWithOwnerId(1);
+        UpdateRentalRequest request = validUpdateRequest();
+
+        when(rentalRepository.findById(1)).thenReturn(Optional.of(rental));
+        when(rentalRepository.save(any(Rental.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        RentalResponse response = rentalService.update(1, request, authenticationWithUserId(1));
+
+        assertThat(response.message()).isEqualTo("Rental updated !");
+        assertThat(rental.getName()).isEqualTo("Updated house");
+        assertThat(rental.getSurface()).isEqualTo(140L);
+        assertThat(rental.getPrice()).isEqualTo(980L);
+        assertThat(rental.getPicture()).isEqualTo("http://localhost:9001/api/uploads/rentals/house.jpg");
+        assertThat(rental.getDescription()).isEqualTo("Updated description");
+
+        verify(rentalRepository).save(rental);
+        verify(rentalPictureStorageService, never()).store(any(MultipartFile.class));
+        verify(rentalPictureStorageService, never()).delete(any());
+    }
+
+    @Test
+    void updateReplacesPictureAndDeletesPreviousOne() {
+        Rental rental = rentalWithOwnerId(1);
+        UpdateRentalRequest request = validUpdateRequest();
+        request.setPicture(new MockMultipartFile(
+            "picture",
+            "new-house.jpg",
+            "image/jpeg",
+            "new-image-content".getBytes()
+        ));
+
+        when(rentalRepository.findById(1)).thenReturn(Optional.of(rental));
+        when(rentalPictureStorageService.store(request.getPicture()))
+            .thenReturn("http://localhost:9001/api/uploads/rentals/new-house.jpg");
+        when(rentalRepository.save(any(Rental.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        RentalResponse response = rentalService.update(1, request, authenticationWithUserId(1));
+
+        assertThat(response.message()).isEqualTo("Rental updated !");
+        assertThat(rental.getPicture()).isEqualTo("http://localhost:9001/api/uploads/rentals/new-house.jpg");
+
+        verify(rentalPictureStorageService).store(request.getPicture());
+        verify(rentalPictureStorageService).delete("http://localhost:9001/api/uploads/rentals/house.jpg");
+        verify(rentalRepository).save(rental);
+    }
+
+    @Test
+    void updateThrowsForbiddenWhenAuthenticatedUserIsNotTheOwner() {
+        when(rentalRepository.findById(1)).thenReturn(Optional.of(rentalWithOwnerId(2)));
+
+        assertThatThrownBy(() -> rentalService.update(1, validUpdateRequest(), authenticationWithUserId(1)))
+            .isInstanceOf(ResponseStatusException.class)
+            .extracting("statusCode")
+            .isEqualTo(HttpStatus.FORBIDDEN);
+
+        verify(rentalRepository, never()).save(any(Rental.class));
+        verify(rentalPictureStorageService, never()).store(any(MultipartFile.class));
+        verify(rentalPictureStorageService, never()).delete(any());
+    }
+
+    @Test
+    void updateThrowsNotFoundWhenRentalDoesNotExist() {
+        when(rentalRepository.findById(1)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> rentalService.update(1, validUpdateRequest(), authenticationWithUserId(1)))
+            .isInstanceOf(ResponseStatusException.class)
+            .extracting("statusCode")
+            .isEqualTo(HttpStatus.NOT_FOUND);
+
+        verify(rentalRepository, never()).save(any(Rental.class));
+    }
+
     private CreateRentalRequest validRequest() {
         CreateRentalRequest request = new CreateRentalRequest();
         request.setName(" House ");
@@ -194,6 +269,30 @@ class RentalServiceTest {
         request.setDescription(" A nice house ");
 
         return request;
+    }
+
+    private UpdateRentalRequest validUpdateRequest() {
+        UpdateRentalRequest request = new UpdateRentalRequest();
+        request.setName(" Updated house ");
+        request.setSurface(140L);
+        request.setPrice(980L);
+        request.setDescription(" Updated description ");
+
+        return request;
+    }
+
+    private Rental rentalWithOwnerId(Integer ownerId) {
+        User owner = new User("owner@example.com", "Owner", "encoded-password");
+        ReflectionTestUtils.setField(owner, "id", ownerId);
+
+        return new Rental(
+            "House",
+            120L,
+            950L,
+            "http://localhost:9001/api/uploads/rentals/house.jpg",
+            "A nice house",
+            owner
+        );
     }
 
     private JwtAuthenticationToken authenticationWithUserId(Integer userId) {
