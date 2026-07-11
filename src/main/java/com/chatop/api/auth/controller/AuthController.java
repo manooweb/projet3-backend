@@ -1,11 +1,14 @@
 package com.chatop.api.auth.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.chatop.api.auth.dto.AuthenticatedUserResponse;
 import com.chatop.api.auth.dto.AuthTokenResponse;
 import com.chatop.api.auth.dto.LoginRequest;
 import com.chatop.api.auth.dto.RegisterRequest;
@@ -29,5 +32,10 @@ public class AuthController {
     @PostMapping("/login")
     public AuthTokenResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @GetMapping("/me")
+    public AuthenticatedUserResponse me(Authentication authentication) {
+        return authService.me(authentication);
     }
 }

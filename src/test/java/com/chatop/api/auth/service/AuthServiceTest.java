@@ -7,14 +7,20 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.auth.dto.AuthenticatedUserResponse;
 import com.chatop.api.auth.dto.AuthTokenResponse;
 import com.chatop.api.auth.dto.LoginRequest;
 import com.chatop.api.user.model.User;
@@ -79,5 +85,53 @@ class AuthServiceTest {
             .isEqualTo(HttpStatus.UNAUTHORIZED);
 
         verify(jwtService, never()).generateToken(user);
+    }
+
+    @Test
+    void meReturnsAuthenticatedUserFromJwtUserId() {
+        User user = new User("test@example.com", "Test", "encoded-password");
+        ReflectionTestUtils.setField(user, "id", 1);
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+
+        AuthenticatedUserResponse response = authService.me(authenticationWithUserId(1));
+
+        assertThat(response.id()).isEqualTo(1);
+        assertThat(response.name()).isEqualTo("Test");
+        assertThat(response.email()).isEqualTo("test@example.com");
+    }
+
+    @Test
+    void meThrowsUnauthorizedWhenJwtIsMissing() {
+        assertThatThrownBy(() -> authService.me(null))
+            .isInstanceOf(ResponseStatusException.class)
+            .extracting("statusCode")
+            .isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void meThrowsUnauthorizedWhenUserDoesNotExist() {
+        when(userRepository.findById(1)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.me(authenticationWithUserId(1)))
+            .isInstanceOf(ResponseStatusException.class)
+            .extracting("statusCode")
+            .isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    private JwtAuthenticationToken authenticationWithUserId(Integer userId) {
+        return new JwtAuthenticationToken(jwtWithUserId(userId));
+    }
+
+    private Jwt jwtWithUserId(Integer userId) {
+        Instant now = Instant.now();
+
+        return new Jwt(
+            "jwt-token",
+            now,
+            now.plusSeconds(3600),
+            Map.of("alg", "HS256"),
+            Map.of("sub", "test@example.com", "userId", userId)
+        );
     }
 }

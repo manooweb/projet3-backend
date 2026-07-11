@@ -3,6 +3,8 @@ package com.chatop.api.auth.controller;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.auth.dto.AuthenticatedUserResponse;
 import com.chatop.api.auth.dto.AuthTokenResponse;
 import com.chatop.api.auth.dto.LoginRequest;
 import com.chatop.api.auth.dto.RegisterRequest;
@@ -107,6 +110,31 @@ class AuthControllerTest {
                       "password": "wrong-password"
                     }
                     """))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void meReturnsAuthenticatedUser() throws Exception {
+        when(authService.me(any()))
+            .thenReturn(new AuthenticatedUserResponse(1, "Test", "test@example.com"));
+
+        mockMvc.perform(get("/api/auth/me")
+                .with(jwt().jwt(token -> token
+                    .subject("test@example.com")
+                    .tokenValue("jwt-token")
+                    .claim("userId", 1))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id", is(1)))
+            .andExpect(jsonPath("$.name", is("Test")))
+            .andExpect(jsonPath("$.email", is("test@example.com")));
+    }
+
+    @Test
+    void meReturnsUnauthorizedWhenUserIsNotAuthenticated() throws Exception {
+        when(authService.me(any()))
+            .thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"));
+
+        mockMvc.perform(get("/api/auth/me"))
             .andExpect(status().isUnauthorized());
     }
 }
