@@ -6,9 +6,14 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +27,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
+import com.chatop.api.rental.dto.RentalSummaryResponse;
+import com.chatop.api.rental.dto.RentalsResponse;
 import com.chatop.api.rental.service.RentalService;
 
 @WebMvcTest(RentalController.class)
@@ -33,6 +40,36 @@ class RentalControllerTest {
 
     @MockitoBean
     private RentalService rentalService;
+
+    @Test
+    void findAllReturnsRentals() throws Exception {
+        when(rentalService.findAll())
+            .thenReturn(new RentalsResponse(List.of(new RentalSummaryResponse(
+                1,
+                "House",
+                new BigDecimal("120"),
+                new BigDecimal("950"),
+                "http://localhost:9001/api/uploads/rentals/house.jpg",
+                "A nice house",
+                2,
+                LocalDateTime.of(2026, 7, 11, 10, 30),
+                LocalDateTime.of(2026, 7, 11, 10, 45)
+            ))));
+
+        mockMvc.perform(get("/api/rentals"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.rentals[0].id", is(1)))
+            .andExpect(jsonPath("$.rentals[0].name", is("House")))
+            .andExpect(jsonPath("$.rentals[0].surface", is(120)))
+            .andExpect(jsonPath("$.rentals[0].price", is(950)))
+            .andExpect(jsonPath("$.rentals[0].picture", is("http://localhost:9001/api/uploads/rentals/house.jpg")))
+            .andExpect(jsonPath("$.rentals[0].description", is("A nice house")))
+            .andExpect(jsonPath("$.rentals[0].owner_id", is(2)))
+            .andExpect(jsonPath("$.rentals[0].created_at", is("2026-07-11T10:30:00")))
+            .andExpect(jsonPath("$.rentals[0].updated_at", is("2026-07-11T10:45:00")));
+
+        verify(rentalService).findAll();
+    }
 
     @Test
     void createReturnsSuccessMessage() throws Exception {

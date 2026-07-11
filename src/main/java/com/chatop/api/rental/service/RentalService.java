@@ -11,6 +11,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
+import com.chatop.api.rental.dto.RentalSummaryResponse;
+import com.chatop.api.rental.dto.RentalsResponse;
 import com.chatop.api.rental.model.Rental;
 import com.chatop.api.rental.repository.RentalRepository;
 import com.chatop.api.user.model.User;
@@ -35,6 +37,15 @@ public class RentalService {
         this.rentalPictureStorageService = rentalPictureStorageService;
     }
 
+    @Transactional(readOnly = true)
+    public RentalsResponse findAll() {
+        return new RentalsResponse(
+            rentalRepository.findAll().stream()
+                .map(this::toSummaryResponse)
+                .toList()
+        );
+    }
+
     @Transactional
     public RentalResponse create(CreateRentalRequest request, Authentication authentication) {
         User owner = userRepository.findById(userIdFromToken(authentication))
@@ -53,6 +64,20 @@ public class RentalService {
         rentalRepository.save(rental);
 
         return new RentalResponse(RENTAL_CREATED_MESSAGE);
+    }
+
+    private RentalSummaryResponse toSummaryResponse(Rental rental) {
+        return new RentalSummaryResponse(
+            rental.getId(),
+            rental.getName(),
+            rental.getSurface(),
+            rental.getPrice(),
+            rental.getPicture(),
+            rental.getDescription(),
+            rental.getOwner().getId(),
+            rental.getCreatedAt(),
+            rental.getUpdatedAt()
+        );
     }
 
     private Integer userIdFromToken(Authentication authentication) {

@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,11 +22,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
+import com.chatop.api.rental.dto.RentalSummaryResponse;
+import com.chatop.api.rental.dto.RentalsResponse;
 import com.chatop.api.rental.model.Rental;
 import com.chatop.api.rental.repository.RentalRepository;
 import com.chatop.api.user.model.User;
@@ -43,6 +48,41 @@ class RentalServiceTest {
         userRepository = mock(UserRepository.class);
         rentalPictureStorageService = mock(RentalPictureStorageService.class);
         rentalService = new RentalService(rentalRepository, userRepository, rentalPictureStorageService);
+    }
+
+    @Test
+    void findAllReturnsMappedRentals() {
+        User owner = new User("owner@example.com", "Owner", "encoded-password");
+        ReflectionTestUtils.setField(owner, "id", 2);
+
+        Rental rental = new Rental(
+            "House",
+            new BigDecimal("120"),
+            new BigDecimal("950"),
+            "http://localhost:9001/api/uploads/rentals/house.jpg",
+            "A nice house",
+            owner
+        );
+        ReflectionTestUtils.setField(rental, "id", 1);
+        ReflectionTestUtils.setField(rental, "createdAt", LocalDateTime.of(2026, 7, 11, 10, 30));
+        ReflectionTestUtils.setField(rental, "updatedAt", LocalDateTime.of(2026, 7, 11, 10, 45));
+
+        when(rentalRepository.findAll()).thenReturn(List.of(rental));
+
+        RentalsResponse response = rentalService.findAll();
+
+        assertThat(response.rentals()).hasSize(1);
+
+        RentalSummaryResponse rentalResponse = response.rentals().get(0);
+        assertThat(rentalResponse.id()).isEqualTo(1);
+        assertThat(rentalResponse.name()).isEqualTo("House");
+        assertThat(rentalResponse.surface()).isEqualByComparingTo("120");
+        assertThat(rentalResponse.price()).isEqualByComparingTo("950");
+        assertThat(rentalResponse.picture()).isEqualTo("http://localhost:9001/api/uploads/rentals/house.jpg");
+        assertThat(rentalResponse.description()).isEqualTo("A nice house");
+        assertThat(rentalResponse.ownerId()).isEqualTo(2);
+        assertThat(rentalResponse.createdAt()).isEqualTo(LocalDateTime.of(2026, 7, 11, 10, 30));
+        assertThat(rentalResponse.updatedAt()).isEqualTo(LocalDateTime.of(2026, 7, 11, 10, 45));
     }
 
     @Test
