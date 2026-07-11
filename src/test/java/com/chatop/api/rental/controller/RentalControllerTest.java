@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -47,8 +46,8 @@ class RentalControllerTest {
             .thenReturn(new RentalsResponse(List.of(new RentalSummaryResponse(
                 1,
                 "House",
-                new BigDecimal("120"),
-                new BigDecimal("950"),
+                120L,
+                950L,
                 "http://localhost:9001/api/uploads/rentals/house.jpg",
                 "A nice house",
                 2,

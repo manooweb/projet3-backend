@@ -8,7 +8,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,8 +56,8 @@ class RentalServiceTest {
 
         Rental rental = new Rental(
             "House",
-            new BigDecimal("120"),
-            new BigDecimal("950"),
+            120L,
+            950L,
             "http://localhost:9001/api/uploads/rentals/house.jpg",
             "A nice house",
             owner
@@ -76,8 +75,8 @@ class RentalServiceTest {
         RentalSummaryResponse rentalResponse = response.rentals().get(0);
         assertThat(rentalResponse.id()).isEqualTo(1);
         assertThat(rentalResponse.name()).isEqualTo("House");
-        assertThat(rentalResponse.surface()).isEqualByComparingTo("120");
-        assertThat(rentalResponse.price()).isEqualByComparingTo("950");
+        assertThat(rentalResponse.surface()).isEqualTo(120L);
+        assertThat(rentalResponse.price()).isEqualTo(950L);
         assertThat(rentalResponse.picture()).isEqualTo("http://localhost:9001/api/uploads/rentals/house.jpg");
         assertThat(rentalResponse.description()).isEqualTo("A nice house");
         assertThat(rentalResponse.ownerId()).isEqualTo(2);
@@ -103,8 +102,8 @@ class RentalServiceTest {
 
         assertThat(response.message()).isEqualTo("Rental created !");
         assertThat(savedRental.getName()).isEqualTo("House");
-        assertThat(savedRental.getSurface()).isEqualByComparingTo("120");
-        assertThat(savedRental.getPrice()).isEqualByComparingTo("950");
+        assertThat(savedRental.getSurface()).isEqualTo(120L);
+        assertThat(savedRental.getPrice()).isEqualTo(950L);
         assertThat(savedRental.getDescription()).isEqualTo("A nice house");
         assertThat(savedRental.getOwner()).isSameAs(owner);
         assertThat(savedRental.getPicture()).isEqualTo("http://localhost:9001/api/uploads/rentals/house.jpg");
@@ -142,8 +141,8 @@ class RentalServiceTest {
     private CreateRentalRequest validRequest() {
         CreateRentalRequest request = new CreateRentalRequest();
         request.setName(" House ");
-        request.setSurface(new BigDecimal("120"));
-        request.setPrice(new BigDecimal("950"));
+        request.setSurface(120L);
+        request.setPrice(950L);
         request.setPicture(new MockMultipartFile(
             "picture",
             "house.jpg",

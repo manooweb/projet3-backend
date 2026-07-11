@@ -1,7 +1,9 @@
 package com.chatop.api.rental.model;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import com.chatop.api.user.model.User;
 
@@ -34,10 +36,12 @@ public class Rental {
     private String name;
 
     @Column(name = "surface")
-    private BigDecimal surface;
+    @JdbcTypeCode(SqlTypes.DECIMAL)
+    private Long surface;
 
     @Column(name = "price")
-    private BigDecimal price;
+    @JdbcTypeCode(SqlTypes.DECIMAL)
+    private Long price;
 
     @Column(name = "picture")
     private String picture;
@@ -57,8 +61,8 @@ public class Rental {
 
     public Rental(
         String name,
-        BigDecimal surface,
-        BigDecimal price,
+        Long surface,
+        Long price,
         String picture,
         String description,
         User owner

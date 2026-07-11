@@ -1,6 +1,5 @@
 package com.chatop.api.rental.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record RentalSummaryResponse(
     Integer id,
     String name,
-    BigDecimal surface,
-    BigDecimal price,
+    Long surface,
+    Long price,
     String picture,
     String description,
     @JsonProperty("owner_id")

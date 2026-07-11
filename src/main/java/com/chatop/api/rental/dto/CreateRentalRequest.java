@@ -1,7 +1,5 @@
 package com.chatop.api.rental.dto;
 
-import java.math.BigDecimal;
-
 import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,11 +20,11 @@ public class CreateRentalRequest {
 
     @NotNull
     @Positive
-    private BigDecimal surface;
+    private Long surface;
 
     @NotNull
     @Positive
-    private BigDecimal price;
+    private Long price;
 
     @Schema(type = "string", format = "binary")
     @NotNull
