@@ -11,11 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.auth.dto.AuthTokenResponse;
+import com.chatop.api.auth.dto.LoginRequest;
 import com.chatop.api.auth.dto.RegisterRequest;
 import com.chatop.api.auth.service.AuthService;
 
@@ -59,5 +62,51 @@ class AuthControllerTest {
                     }
                     """))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void loginReturnsGeneratedToken() throws Exception {
+        when(authService.login(any(LoginRequest.class)))
+            .thenReturn(new AuthTokenResponse("jwt-token"));
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "email": "test@example.com",
+                      "password": "password"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token", is("jwt-token")));
+    }
+
+    @Test
+    void loginReturnsBadRequestWhenBodyIsInvalid() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "email": "invalid-email",
+                      "password": ""
+                    }
+                    """))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void loginReturnsUnauthorizedWhenCredentialsAreInvalid() throws Exception {
+        when(authService.login(any(LoginRequest.class)))
+            .thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "email": "test@example.com",
+                      "password": "wrong-password"
+                    }
+                    """))
+            .andExpect(status().isUnauthorized());
     }
 }

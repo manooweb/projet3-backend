@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.chatop.api.auth.dto.AuthTokenResponse;
+import com.chatop.api.auth.dto.LoginRequest;
 import com.chatop.api.auth.dto.RegisterRequest;
 import com.chatop.api.auth.service.AuthService;
 
@@ -23,5 +24,10 @@ public class AuthController {
     @PostMapping("/register")
     public AuthTokenResponse register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
+    }
+
+    @PostMapping("/login")
+    public AuthTokenResponse login(@Valid @RequestBody LoginRequest request) {
+        return authService.login(request);
     }
 }
