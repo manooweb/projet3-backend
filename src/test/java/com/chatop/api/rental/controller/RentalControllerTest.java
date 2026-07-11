@@ -71,6 +71,36 @@ class RentalControllerTest {
     }
 
     @Test
+    void findByIdReturnsRental() throws Exception {
+        when(rentalService.findById(1))
+            .thenReturn(new RentalSummaryResponse(
+                1,
+                "House",
+                120L,
+                950L,
+                "http://localhost:9001/api/uploads/rentals/house.jpg",
+                "A nice house",
+                2,
+                LocalDateTime.of(2026, 7, 11, 10, 30),
+                LocalDateTime.of(2026, 7, 11, 10, 45)
+            ));
+
+        mockMvc.perform(get("/api/rentals/1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id", is(1)))
+            .andExpect(jsonPath("$.name", is("House")))
+            .andExpect(jsonPath("$.surface", is(120)))
+            .andExpect(jsonPath("$.price", is(950)))
+            .andExpect(jsonPath("$.picture", is("http://localhost:9001/api/uploads/rentals/house.jpg")))
+            .andExpect(jsonPath("$.description", is("A nice house")))
+            .andExpect(jsonPath("$.owner_id", is(2)))
+            .andExpect(jsonPath("$.created_at", is("2026-07-11T10:30:00")))
+            .andExpect(jsonPath("$.updated_at", is("2026-07-11T10:45:00")));
+
+        verify(rentalService).findById(1);
+    }
+
+    @Test
     void createReturnsSuccessMessage() throws Exception {
         when(rentalService.create(any(CreateRentalRequest.class), nullable(Authentication.class)))
             .thenReturn(new RentalResponse("Rental created !"));

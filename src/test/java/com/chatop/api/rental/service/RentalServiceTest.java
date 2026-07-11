@@ -85,6 +85,48 @@ class RentalServiceTest {
     }
 
     @Test
+    void findByIdReturnsMappedRental() {
+        User owner = new User("owner@example.com", "Owner", "encoded-password");
+        ReflectionTestUtils.setField(owner, "id", 2);
+
+        Rental rental = new Rental(
+            "House",
+            120L,
+            950L,
+            "http://localhost:9001/api/uploads/rentals/house.jpg",
+            "A nice house",
+            owner
+        );
+        ReflectionTestUtils.setField(rental, "id", 1);
+        ReflectionTestUtils.setField(rental, "createdAt", LocalDateTime.of(2026, 7, 11, 10, 30));
+        ReflectionTestUtils.setField(rental, "updatedAt", LocalDateTime.of(2026, 7, 11, 10, 45));
+
+        when(rentalRepository.findById(1)).thenReturn(Optional.of(rental));
+
+        RentalSummaryResponse rentalResponse = rentalService.findById(1);
+
+        assertThat(rentalResponse.id()).isEqualTo(1);
+        assertThat(rentalResponse.name()).isEqualTo("House");
+        assertThat(rentalResponse.surface()).isEqualTo(120L);
+        assertThat(rentalResponse.price()).isEqualTo(950L);
+        assertThat(rentalResponse.picture()).isEqualTo("http://localhost:9001/api/uploads/rentals/house.jpg");
+        assertThat(rentalResponse.description()).isEqualTo("A nice house");
+        assertThat(rentalResponse.ownerId()).isEqualTo(2);
+        assertThat(rentalResponse.createdAt()).isEqualTo(LocalDateTime.of(2026, 7, 11, 10, 30));
+        assertThat(rentalResponse.updatedAt()).isEqualTo(LocalDateTime.of(2026, 7, 11, 10, 45));
+    }
+
+    @Test
+    void findByIdThrowsNotFoundWhenRentalDoesNotExist() {
+        when(rentalRepository.findById(1)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> rentalService.findById(1))
+            .isInstanceOf(ResponseStatusException.class)
+            .extracting("statusCode")
+            .isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
     void createSavesRentalForAuthenticatedUser() {
         User owner = new User("test@example.com", "Test", "encoded-password");
 

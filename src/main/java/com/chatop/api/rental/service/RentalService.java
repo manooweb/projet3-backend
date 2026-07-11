@@ -46,6 +46,13 @@ public class RentalService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public RentalSummaryResponse findById(Integer id) {
+        return rentalRepository.findById(id)
+            .map(this::toSummaryResponse)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rental not found"));
+    }
+
     @Transactional
     public RentalResponse create(CreateRentalRequest request, Authentication authentication) {
         User owner = userRepository.findById(userIdFromToken(authentication))
