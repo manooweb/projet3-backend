@@ -1,4 +1,4 @@
-package com.chatop.api.controller;
+package com.chatop.api.system.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

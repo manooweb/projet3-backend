@@ -1,40 +1,39 @@
 # Châtop API
 
-API backend Spring Boot du projet Châtop.
+Spring Boot backend API for the Châtop project.
 
-## Prérequis
+## Prerequisites
 
 - Java 17
 - Maven
 - Spring Boot 4.1.0
 
-## Lancer l'application
+## Run the application
 
-Depuis le dossier `projet3-backend`, lancer Spring Boot avec Maven :
+From the `projet3-backend` folder, start Spring Boot with Maven:
 
 ```powershell
 mvn spring-boot:run
 ```
 
-L'API démarre sur le port `8081` :
+The API starts on port `9001`:
 
 ```text
-http://localhost:8081
+http://localhost:9001
 ```
 
-## Vérifier le démarrage
+## Check the application startup
 
-Un endpoint de vérification est disponible ici :
+A health check endpoint is available here:
 
 ```text
-http://localhost:8081/api/health
+http://localhost:9001/api/health
 ```
 
-Réponse attendue :
+Expected response:
 
 ```json
 {
   "status": "OK"
 }
 ```
-
