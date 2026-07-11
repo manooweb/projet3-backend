@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.rental.dto.CreateRentalRequest;
@@ -33,13 +34,15 @@ class RentalServiceTest {
 
     private RentalRepository rentalRepository;
     private UserRepository userRepository;
+    private RentalPictureStorageService rentalPictureStorageService;
     private RentalService rentalService;
 
     @BeforeEach
     void setUp() {
         rentalRepository = mock(RentalRepository.class);
         userRepository = mock(UserRepository.class);
-        rentalService = new RentalService(rentalRepository, userRepository);
+        rentalPictureStorageService = mock(RentalPictureStorageService.class);
+        rentalService = new RentalService(rentalRepository, userRepository, rentalPictureStorageService);
     }
 
     @Test
@@ -47,6 +50,8 @@ class RentalServiceTest {
         User owner = new User("test@example.com", "Test", "encoded-password");
 
         when(userRepository.findById(1)).thenReturn(Optional.of(owner));
+        when(rentalPictureStorageService.store(any(MultipartFile.class)))
+            .thenReturn("http://localhost:9001/api/uploads/rentals/house.jpg");
         when(rentalRepository.save(any(Rental.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         RentalResponse response = rentalService.create(validRequest(), authenticationWithUserId(1));
@@ -62,13 +67,17 @@ class RentalServiceTest {
         assertThat(savedRental.getPrice()).isEqualByComparingTo("950");
         assertThat(savedRental.getDescription()).isEqualTo("A nice house");
         assertThat(savedRental.getOwner()).isSameAs(owner);
-        assertThat(savedRental.getPicture()).startsWith("https://");
+        assertThat(savedRental.getPicture()).isEqualTo("http://localhost:9001/api/uploads/rentals/house.jpg");
     }
 
     @Test
     void createThrowsBadRequestWhenPictureIsEmpty() {
         CreateRentalRequest request = validRequest();
         request.setPicture(new MockMultipartFile("picture", new byte[0]));
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(new User("test@example.com", "Test", "encoded-password")));
+        when(rentalPictureStorageService.store(request.getPicture()))
+            .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Picture is required"));
 
         assertThatThrownBy(() -> rentalService.create(request, authenticationWithUserId(1)))
             .isInstanceOf(ResponseStatusException.class)

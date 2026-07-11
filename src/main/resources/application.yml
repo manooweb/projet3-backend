@@ -30,6 +30,8 @@ app:
   jwt:
     secret: ${JWT_SECRET:dev-secret-key-change-me-please-dev-secret-key}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
+  uploads:
+    rentals-dir: ${RENTAL_UPLOADS_DIR:uploads/rentals}
 
 springdoc:
   api-docs:

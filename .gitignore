@@ -1,5 +1,6 @@
 # Environment
 .env
+uploads/
 
 HELP.md
 target/
