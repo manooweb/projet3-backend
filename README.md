@@ -14,6 +14,97 @@ Database requirements depend on the setup you choose:
 - Scenario 1: Docker, if you want to run MySQL in a container
 - Scenario 2: MySQL 8, if you want to use an existing local MySQL server
 
+## Database Setup
+
+The SQL schema is available in this backend folder:
+
+```text
+chatop.sql
+```
+
+The application uses `spring.jpa.hibernate.ddl-auto=validate`, so Spring Boot checks that the schema matches the entities, but it does not create the tables automatically. The SQL script must be imported before starting the API.
+
+The script drops and recreates the project tables, then inserts a demo user and a demo rental. Demo credentials:
+
+```text
+email: demo@chatop.com
+password: password
+```
+
+The demo rental uses this public picture URL:
+
+```text
+/api/uploads/rentals/online-house-rental-sites.jpg
+```
+
+With the default upload configuration, the corresponding file must exist here before starting the API:
+
+```text
+uploads/rentals/online-house-rental-sites.jpg
+```
+
+If you override `RENTAL_UPLOADS_DIR`, copy this image into the configured folder instead. The public URL stays `/api/uploads/rentals/online-house-rental-sites.jpg`.
+
+### Scenario 1: MySQL With Docker
+
+Start a MySQL 8 container:
+
+```bash
+docker run --name chatop-mysql \
+  -v chatop_mysql_data:/var/lib/mysql \
+  -e MYSQL_ROOT_PASSWORD=root \
+  -e MYSQL_DATABASE=chatop_db \
+  -e MYSQL_USER=chatop_user \
+  -e MYSQL_PASSWORD=chatop_password \
+  -p 3306:3306 \
+  -d mysql:8.4
+```
+
+This command creates a development container named `chatop-mysql` and stores database files in the `chatop_mysql_data` Docker volume.
+
+Copy the SQL script into the container:
+
+```bash
+docker cp chatop.sql chatop-mysql:/tmp/chatop.sql
+```
+
+Open a MySQL session:
+
+```bash
+docker exec -it chatop-mysql mysql -uchatop_user -p chatop_db
+```
+
+Enter the password configured above, then import the schema:
+
+```sql
+source /tmp/chatop.sql;
+exit;
+```
+
+### Scenario 2: Local MySQL Server
+
+Connect to MySQL with an administrator account:
+
+```bash
+mysql -uroot -p
+```
+
+Create the database and user:
+
+```sql
+CREATE DATABASE chatop_db;
+CREATE USER 'chatop_user'@'localhost' IDENTIFIED BY 'chatop_password';
+GRANT ALL PRIVILEGES ON chatop_db.* TO 'chatop_user'@'localhost';
+FLUSH PRIVILEGES;
+exit;
+```
+
+Import the SQL schema:
+
+```bash
+mysql -uchatop_user -p chatop_db < chatop.sql
+```
+
 ## Environment Configuration
 
 From the `projet3-backend` folder, copy the example environment file:
@@ -22,7 +113,7 @@ From the `projet3-backend` folder, copy the example environment file:
 cp .env.example .env
 ```
 
-For a standard local setup, use values similar to these:
+Report the database values from the setup scenario you chose:
 
 ```properties
 DB_HOST=localhost
@@ -30,7 +121,11 @@ DB_PORT=3306
 DB_USER=chatop_user
 DB_PASSWORD=chatop_password
 DB_NAME=chatop_db
+```
 
+Then configure the application secrets and optional services:
+
+```properties
 JWT_SECRET=change-me-with-a-long-secret-key-for-local-development
 JWT_EXPIRATION_SECONDS=86400
 JWT_COOKIE_SECURE=false
@@ -59,73 +154,6 @@ MAIL_SMTP_STARTTLS_ENABLE=false
 ```
 
 Mailpit is optional. If no SMTP server is running while these values are configured, the API can still start and the main rental/message workflow is not blocked. Email delivery errors are ignored by the application after being logged for debugging.
-
-## Database Setup
-
-The SQL schema is available at:
-
-```text
-../livrables/script.sql
-```
-
-The application uses `spring.jpa.hibernate.ddl-auto=validate`, so Spring Boot checks that the schema matches the entities, but it does not create the tables automatically. The SQL script must be imported before starting the API.
-
-### Scenario 1: MySQL With Docker
-
-Start a MySQL 8 container:
-
-```bash
-docker run --name chatop-mysql \
-  -e MYSQL_ROOT_PASSWORD=root \
-  -e MYSQL_DATABASE=chatop_db \
-  -e MYSQL_USER=chatop_user \
-  -e MYSQL_PASSWORD=chatop_password \
-  -p 3306:3306 \
-  -d mysql:8.4
-```
-
-Copy the SQL script into the container:
-
-```bash
-docker cp ../livrables/script.sql chatop-mysql:/tmp/script.sql
-```
-
-Open a MySQL session:
-
-```bash
-docker exec -it chatop-mysql mysql -uchatop_user -p chatop_db
-```
-
-Enter the password configured above, then import the schema:
-
-```sql
-source /tmp/script.sql;
-exit;
-```
-
-### Scenario 2: Local MySQL Server
-
-Connect to MySQL with an administrator account:
-
-```bash
-mysql -uroot -p
-```
-
-Create the database and user:
-
-```sql
-CREATE DATABASE chatop_db;
-CREATE USER 'chatop_user'@'localhost' IDENTIFIED BY 'chatop_password';
-GRANT ALL PRIVILEGES ON chatop_db.* TO 'chatop_user'@'localhost';
-FLUSH PRIVILEGES;
-exit;
-```
-
-Import the SQL schema:
-
-```bash
-mysql -uchatop_user -p chatop_db < ../livrables/script.sql
-```
 
 ## Run the Backend
 
@@ -175,7 +203,31 @@ The generated OpenAPI contract is available at:
 http://localhost:9001/v3/api-docs
 ```
 
-Protected endpoints can be tested from Swagger UI with the `Authorize` button after getting a JWT through `/api/auth/register` or `/api/auth/login`.
+Authentication uses HTTP cookies:
+
+- `/api/auth/register` and `/api/auth/login` create the authentication cookie.
+- Protected endpoints then reuse this cookie automatically when requests are sent from the same browser.
+
+CSRF protection is enabled for browser requests. Swagger UI is configured to support it with:
+
+- CSRF cookie: `XSRF-TOKEN`
+- CSRF header: `X-XSRF-TOKEN`
+
+Because `/api/auth/register` and `/api/auth/login` are also `POST` requests, they need a CSRF token even before the authentication cookie exists. Use the dedicated CSRF endpoint first:
+
+```text
+GET /api/auth/csrf
+```
+
+Recommended Swagger UI flow:
+
+1. Execute `GET /api/auth/csrf`.
+2. Execute `POST /api/auth/login` or `POST /api/auth/register`.
+3. Execute protected endpoints from the same browser session.
+
+The CSRF endpoint returns `204 No Content` and creates the readable `XSRF-TOKEN` cookie. Swagger UI can then read this cookie and send the `X-XSRF-TOKEN` header automatically for `POST`, `PUT` and `DELETE` requests.
+
+If you skip `GET /api/auth/csrf`, the first `POST /api/auth/login` or `POST /api/auth/register` can fail because the browser did not have a CSRF token yet. In that case, retrying the same request after the CSRF cookie has been created may work, but calling `/api/auth/csrf` first is the predictable flow.
 
 ## Demo Frontend
 

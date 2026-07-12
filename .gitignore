@@ -1,6 +1,9 @@
 # Environment
 .env
-uploads/
+uploads/*
+!uploads/rentals/
+uploads/rentals/*
+!uploads/rentals/online-house-rental-sites.jpg
 
 HELP.md
 target/
