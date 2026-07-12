@@ -66,6 +66,13 @@ class MessageControllerTest {
                     }
                     """)
                 .with(jwt().jwt(token -> token.claim("userId", 2))))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status", is(400)))
+            .andExpect(jsonPath("$.error", is("Bad Request")))
+            .andExpect(jsonPath("$.message", is("Validation failed")))
+            .andExpect(jsonPath("$.path", is("/api/messages")))
+            .andExpect(jsonPath("$.field_errors[0].field", is("message")))
+            .andExpect(jsonPath("$.field_errors[1].field", is("rentalId")))
+            .andExpect(jsonPath("$.field_errors[2].field", is("userId")));
     }
 }

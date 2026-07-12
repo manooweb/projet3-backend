@@ -21,11 +21,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.config.properties.ChatopProperties;
 import com.chatop.api.config.properties.ChatopPropertiesTestFactory;
@@ -140,7 +142,11 @@ class RentalControllerTest {
         mockMvc.perform(multipart("/api/rentals")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .with(jwt().jwt(token -> token.claim("userId", 1))))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status", is(400)))
+            .andExpect(jsonPath("$.error", is("Bad Request")))
+            .andExpect(jsonPath("$.message", is("Validation failed")))
+            .andExpect(jsonPath("$.path", is("/api/rentals")));
     }
 
     @Test
@@ -200,7 +206,24 @@ class RentalControllerTest {
                     return request;
                 })
                 .with(jwt().jwt(token -> token.claim("userId", 1))))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status", is(400)))
+            .andExpect(jsonPath("$.error", is("Bad Request")))
+            .andExpect(jsonPath("$.message", is("Validation failed")))
+            .andExpect(jsonPath("$.path", is("/api/rentals/1")));
+    }
+
+    @Test
+    void findByIdReturnsNotFoundWhenRentalDoesNotExist() throws Exception {
+        when(rentalService.findById(99))
+            .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Rental not found"));
+
+        mockMvc.perform(get("/api/rentals/99"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.status", is(404)))
+            .andExpect(jsonPath("$.error", is("Not Found")))
+            .andExpect(jsonPath("$.message", is("Rental not found")))
+            .andExpect(jsonPath("$.path", is("/api/rentals/99")));
     }
 
     private MockMultipartFile picture() {

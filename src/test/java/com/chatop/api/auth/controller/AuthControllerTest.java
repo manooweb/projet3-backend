@@ -64,7 +64,14 @@ class AuthControllerTest {
                       "password": ""
                     }
                     """))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status", is(400)))
+            .andExpect(jsonPath("$.error", is("Bad Request")))
+            .andExpect(jsonPath("$.message", is("Validation failed")))
+            .andExpect(jsonPath("$.path", is("/api/auth/register")))
+            .andExpect(jsonPath("$.field_errors[0].field", is("email")))
+            .andExpect(jsonPath("$.field_errors[1].field", is("name")))
+            .andExpect(jsonPath("$.field_errors[2].field", is("password")));
     }
 
     @Test
@@ -94,7 +101,13 @@ class AuthControllerTest {
                       "password": ""
                     }
                     """))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status", is(400)))
+            .andExpect(jsonPath("$.error", is("Bad Request")))
+            .andExpect(jsonPath("$.message", is("Validation failed")))
+            .andExpect(jsonPath("$.path", is("/api/auth/login")))
+            .andExpect(jsonPath("$.field_errors[0].field", is("email")))
+            .andExpect(jsonPath("$.field_errors[1].field", is("password")));
     }
 
     @Test
@@ -110,7 +123,11 @@ class AuthControllerTest {
                       "password": "wrong-password"
                     }
                     """))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.status", is(401)))
+            .andExpect(jsonPath("$.error", is("Unauthorized")))
+            .andExpect(jsonPath("$.message", is("Invalid credentials")))
+            .andExpect(jsonPath("$.path", is("/api/auth/login")));
     }
 
     @Test
@@ -135,6 +152,10 @@ class AuthControllerTest {
             .thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"));
 
         mockMvc.perform(get("/api/auth/me"))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.status", is(401)))
+            .andExpect(jsonPath("$.error", is("Unauthorized")))
+            .andExpect(jsonPath("$.message", is("Unauthorized")))
+            .andExpect(jsonPath("$.path", is("/api/auth/me")));
     }
 }
