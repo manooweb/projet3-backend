@@ -21,7 +21,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.auth.dto.AuthenticatedUserResponse;
-import com.chatop.api.auth.dto.AuthTokenResponse;
 import com.chatop.api.auth.dto.LoginRequest;
 import com.chatop.api.config.properties.ChatopProperties;
 import com.chatop.api.config.properties.ChatopPropertiesTestFactory;
@@ -54,11 +53,11 @@ class AuthServiceTest {
         when(passwordEncoder.matches("password", "encoded-password")).thenReturn(true);
         when(jwtService.generateToken(user)).thenReturn("jwt-token");
 
-        AuthTokenResponse response = authService.login(
+        String token = authService.login(
             new LoginRequest(" Test@Example.com ", "password")
         );
 
-        assertThat(response.token()).isEqualTo("jwt-token");
+        assertThat(token).isEqualTo("jwt-token");
     }
 
     @Test

@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.auth.dto.AuthenticatedUserResponse;
-import com.chatop.api.auth.dto.AuthTokenResponse;
 import com.chatop.api.auth.dto.LoginRequest;
 import com.chatop.api.auth.dto.RegisterRequest;
 import com.chatop.api.config.properties.ChatopProperties;
@@ -43,7 +42,7 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthTokenResponse register(RegisterRequest request) {
+    public String register(RegisterRequest request) {
         String email = normalizeEmail(request.email());
 
         if (userRepository.existsByEmailIgnoreCase(email)) {
@@ -59,14 +58,14 @@ public class AuthService {
         try {
             User savedUser = userRepository.saveAndFlush(user);
 
-            return new AuthTokenResponse(jwtService.generateToken(savedUser));
+            return jwtService.generateToken(savedUser);
         } catch (DataIntegrityViolationException exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getEmailAlreadyExists(), exception);
         }
     }
 
     @Transactional(readOnly = true)
-    public AuthTokenResponse login(LoginRequest request) {
+    public String login(LoginRequest request) {
         String email = normalizeEmail(request.email());
         User user = userRepository.findByEmailIgnoreCase(email)
             .orElseThrow(this::invalidCredentials);
@@ -75,7 +74,7 @@ public class AuthService {
             throw invalidCredentials();
         }
 
-        return new AuthTokenResponse(jwtService.generateToken(user));
+        return jwtService.generateToken(user);
     }
 
     @Transactional(readOnly = true)

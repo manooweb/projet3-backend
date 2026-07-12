@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-    private static final String JWT_SECURITY_SCHEME = "bearerAuth";
+    private static final String JWT_SECURITY_SCHEME = "cookieAuth";
 
     @Bean
     OpenAPI chatopOpenAPI(ChatopProperties chatopProperties) {
@@ -27,9 +27,8 @@ public class OpenApiConfig {
             .addSecurityItem(new SecurityRequirement().addList(JWT_SECURITY_SCHEME))
             .components(new Components()
                 .addSecuritySchemes(JWT_SECURITY_SCHEME, new SecurityScheme()
-                    .name(JWT_SECURITY_SCHEME)
-                    .type(SecurityScheme.Type.HTTP)
-                    .scheme("bearer")
-                    .bearerFormat("JWT")));
+                    .name(chatopProperties.getJwt().getCookieName())
+                    .type(SecurityScheme.Type.APIKEY)
+                    .in(SecurityScheme.In.COOKIE)));
     }
 }

@@ -35,6 +35,9 @@ public final class ChatopPropertiesTestFactory {
         JwtProperties properties = new JwtProperties();
         properties.setSecret("dev-secret-key-change-me-please-dev-secret-key");
         properties.setExpirationSeconds(86400);
+        properties.setCookieName("CHATOP_AUTH");
+        properties.setCookieSecure(false);
+        properties.setCookieSameSite("Lax");
 
         return properties;
     }
@@ -94,6 +97,8 @@ public final class ChatopPropertiesTestFactory {
         properties.setRentalCreated("Rental created !");
         properties.setRentalUpdated("Rental updated !");
         properties.setMessageSent("Message send with success");
+        properties.setAuthenticationSuccessful("Authentication successful");
+        properties.setLogoutSuccessful("Logout successful");
 
         return properties;
     }

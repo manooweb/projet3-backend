@@ -1,5 +1,6 @@
 package com.chatop.api.auth.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -9,21 +10,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.auth.dto.AuthenticatedUserResponse;
-import com.chatop.api.auth.dto.AuthTokenResponse;
 import com.chatop.api.auth.dto.LoginRequest;
 import com.chatop.api.auth.dto.RegisterRequest;
+import com.chatop.api.auth.security.JwtCookieService;
 import com.chatop.api.auth.service.AuthService;
+import com.chatop.api.config.properties.ResponseMessagesProperties;
 
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -35,10 +40,24 @@ class AuthControllerTest {
     @MockitoBean
     private AuthService authService;
 
+    @MockitoBean
+    private JwtCookieService jwtCookieService;
+
+    @MockitoBean
+    private ResponseMessagesProperties responses;
+
+    @BeforeEach
+    void setUp() {
+        when(responses.getAuthenticationSuccessful()).thenReturn("Authentication successful");
+        when(responses.getLogoutSuccessful()).thenReturn("Logout successful");
+    }
+
     @Test
-    void registerReturnsGeneratedToken() throws Exception {
+    void registerSetsAuthenticationCookieWithoutReturningToken() throws Exception {
         when(authService.register(any(RegisterRequest.class)))
-            .thenReturn(new AuthTokenResponse("jwt-token"));
+            .thenReturn("jwt-token");
+        when(jwtCookieService.createAuthenticationCookie("jwt-token"))
+            .thenReturn(authenticationCookie("jwt-token"));
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -50,7 +69,10 @@ class AuthControllerTest {
                     }
                     """))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.token", is("jwt-token")));
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .string(HttpHeaders.SET_COOKIE, containsString("CHATOP_AUTH=jwt-token")))
+            .andExpect(jsonPath("$.message", is("Authentication successful")))
+            .andExpect(jsonPath("$.token").doesNotExist());
     }
 
     @Test
@@ -75,9 +97,11 @@ class AuthControllerTest {
     }
 
     @Test
-    void loginReturnsGeneratedToken() throws Exception {
+    void loginSetsAuthenticationCookieWithoutReturningToken() throws Exception {
         when(authService.login(any(LoginRequest.class)))
-            .thenReturn(new AuthTokenResponse("jwt-token"));
+            .thenReturn("jwt-token");
+        when(jwtCookieService.createAuthenticationCookie("jwt-token"))
+            .thenReturn(authenticationCookie("jwt-token"));
 
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -88,7 +112,10 @@ class AuthControllerTest {
                     }
                     """))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.token", is("jwt-token")));
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .string(HttpHeaders.SET_COOKIE, containsString("CHATOP_AUTH=jwt-token")))
+            .andExpect(jsonPath("$.message", is("Authentication successful")))
+            .andExpect(jsonPath("$.token").doesNotExist());
     }
 
     @Test
@@ -157,5 +184,33 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.error", is("Unauthorized")))
             .andExpect(jsonPath("$.message", is("Unauthorized")))
             .andExpect(jsonPath("$.path", is("/api/auth/me")));
+    }
+
+    @Test
+    void logoutClearsAuthenticationCookie() throws Exception {
+        when(jwtCookieService.clearAuthenticationCookie()).thenReturn(expiredAuthenticationCookie());
+
+        mockMvc.perform(post("/api/auth/logout"))
+            .andExpect(status().isOk())
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .string(HttpHeaders.SET_COOKIE, containsString("CHATOP_AUTH=")))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .string(HttpHeaders.SET_COOKIE, containsString("Max-Age=0")))
+            .andExpect(jsonPath("$.message", is("Logout successful")));
+    }
+
+    private ResponseCookie authenticationCookie(String token) {
+        return ResponseCookie.from("CHATOP_AUTH", token)
+            .path("/api")
+            .httpOnly(true)
+            .build();
+    }
+
+    private ResponseCookie expiredAuthenticationCookie() {
+        return ResponseCookie.from("CHATOP_AUTH", "")
+            .path("/api")
+            .httpOnly(true)
+            .maxAge(0)
+            .build();
     }
 }

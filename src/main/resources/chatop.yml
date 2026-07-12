@@ -2,6 +2,9 @@ chatop:
   jwt:
     secret: ${JWT_SECRET:dev-secret-key-change-me-please-dev-secret-key}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
+    cookie-name: ${JWT_COOKIE_NAME:CHATOP_AUTH}
+    cookie-secure: ${JWT_COOKIE_SECURE:false}
+    cookie-same-site: ${JWT_COOKIE_SAME_SITE:Lax}
   uploads:
     rentals-dir: ${RENTAL_UPLOADS_DIR:uploads/rentals}
     rentals-url-path: /api/uploads/rentals/
@@ -34,6 +37,8 @@ chatop:
     rental-created: Rental created !
     rental-updated: Rental updated !
     message-sent: Message send with success
+    authentication-successful: Authentication successful
+    logout-successful: Logout successful
   errors:
     email-already-exists: Email already exists
     invalid-credentials: Invalid credentials

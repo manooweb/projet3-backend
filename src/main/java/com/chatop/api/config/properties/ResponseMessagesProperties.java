@@ -13,4 +13,6 @@ public class ResponseMessagesProperties {
     private String rentalCreated;
     private String rentalUpdated;
     private String messageSent;
+    private String authenticationSuccessful;
+    private String logoutSuccessful;
 }

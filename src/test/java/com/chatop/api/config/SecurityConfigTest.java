@@ -2,6 +2,8 @@ package com.chatop.api.config;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -26,5 +28,29 @@ class SecurityConfigTest {
             .andExpect(jsonPath("$.error", is("Unauthorized")))
             .andExpect(jsonPath("$.message", is("Unauthorized")))
             .andExpect(jsonPath("$.path", is("/api/rentals")));
+    }
+
+    @Test
+    void csrfEndpointCreatesReadableXsrfCookie() throws Exception {
+        mockMvc.perform(get("/api/auth/csrf"))
+            .andExpect(status().isNoContent())
+            .andExpect(cookie().exists("XSRF-TOKEN"));
+    }
+
+    @Test
+    void unsafeRequestWithoutCsrfTokenReturnsForbidden() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                .contentType("application/json")
+                .content("""
+                    {
+                      "email": "test@example.com",
+                      "password": "password"
+                    }
+                    """))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.status", is(403)))
+            .andExpect(jsonPath("$.error", is("Forbidden")))
+            .andExpect(jsonPath("$.message", is("Forbidden")))
+            .andExpect(jsonPath("$.path", is("/api/auth/login")));
     }
 }
