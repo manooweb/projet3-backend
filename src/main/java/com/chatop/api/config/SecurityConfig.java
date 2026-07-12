@@ -1,6 +1,8 @@
 package com.chatop.api.config;
 
 import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.exception.security.ApiAccessDeniedHandler;
+import com.chatop.api.exception.security.ApiAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,12 +19,17 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(
         HttpSecurity http,
-        ChatopProperties chatopProperties
+        ChatopProperties chatopProperties,
+        ApiAuthenticationEntryPoint authenticationEntryPoint,
+        ApiAccessDeniedHandler accessDeniedHandler
     ) {
         return http
             .csrf(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
                     "/",
@@ -36,7 +43,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, chatopProperties.getUploads().getRentalsUrlPathPattern()).permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
                 .anyRequest().authenticated())
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
+                .jwt(Customizer.withDefaults()))
             .build();
     }
 
