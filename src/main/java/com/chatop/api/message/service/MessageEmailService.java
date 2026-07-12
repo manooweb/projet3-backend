@@ -2,8 +2,6 @@ package com.chatop.api.message.service;
 
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,10 +11,11 @@ import org.springframework.util.StringUtils;
 import com.chatop.api.rental.model.Rental;
 import com.chatop.api.user.model.User;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class MessageEmailService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageEmailService.class);
 
     private final Optional<JavaMailSender> mailSender;
     private final String from;
@@ -41,7 +40,7 @@ public class MessageEmailService {
         try {
             senderClient.send(mailMessage(rental, sender, messageContent));
         } catch (RuntimeException exception) {
-            LOGGER.debug("Unable to send rental message email notification", exception);
+            log.debug("Unable to send rental message email notification", exception);
         }
     }
 
