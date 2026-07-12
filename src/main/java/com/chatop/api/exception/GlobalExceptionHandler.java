@@ -15,8 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.chatop.api.exception.dto.ApiErrorResponse;
-import com.chatop.api.exception.dto.ApiErrorResponse.FieldValidationError;
+import com.chatop.api.exception.ApiErrorResponse.FieldValidationError;
 
 import jakarta.servlet.http.HttpServletRequest;
 
