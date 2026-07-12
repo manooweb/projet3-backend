@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.chatop.api.config.properties.ChatopProperties;
 import com.chatop.api.config.properties.SystemProperties;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 /**
  * Exposes a lightweight API entry point.
  */
+@Hidden
 @RestController
 public class RootController {
 

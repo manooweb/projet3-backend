@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-    private static final String JWT_SECURITY_SCHEME = "cookieAuth";
+    public static final String COOKIE_AUTH_SECURITY_SCHEME = "cookieAuth";
 
     @Bean
     OpenAPI chatopOpenAPI(ChatopProperties chatopProperties) {
@@ -24,9 +24,9 @@ public class OpenApiConfig {
                 .title(openApiProperties.getTitle())
                 .description(openApiProperties.getDescription())
                 .version(openApiProperties.getVersion()))
-            .addSecurityItem(new SecurityRequirement().addList(JWT_SECURITY_SCHEME))
+            .addSecurityItem(new SecurityRequirement().addList(COOKIE_AUTH_SECURITY_SCHEME))
             .components(new Components()
-                .addSecuritySchemes(JWT_SECURITY_SCHEME, new SecurityScheme()
+                .addSecuritySchemes(COOKIE_AUTH_SECURITY_SCHEME, new SecurityScheme()
                     .name(chatopProperties.getJwt().getCookieName())
                     .type(SecurityScheme.Type.APIKEY)
                     .in(SecurityScheme.In.COOKIE)));
