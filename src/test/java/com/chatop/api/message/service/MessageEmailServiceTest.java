@@ -14,6 +14,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.chatop.api.config.properties.ChatopPropertiesTestFactory;
 import com.chatop.api.rental.model.Rental;
 import com.chatop.api.user.model.User;
 
@@ -22,10 +23,7 @@ class MessageEmailServiceTest {
     @Test
     void sendRentalOwnerNotificationSendsEmailToRentalOwner() {
         JavaMailSender mailSender = mock(JavaMailSender.class);
-        MessageEmailService messageEmailService = new MessageEmailService(
-            Optional.of(mailSender),
-            "no-reply@chatop.local"
-        );
+        MessageEmailService messageEmailService = messageEmailService(Optional.of(mailSender));
 
         messageEmailService.sendRentalOwnerNotification(
             rentalWithOwnerEmail("owner@example.com"),
@@ -38,10 +36,7 @@ class MessageEmailServiceTest {
 
     @Test
     void sendRentalOwnerNotificationDoesNothingWhenMailSenderIsMissing() {
-        MessageEmailService messageEmailService = new MessageEmailService(
-            Optional.empty(),
-            "no-reply@chatop.local"
-        );
+        MessageEmailService messageEmailService = messageEmailService(Optional.empty());
 
         assertThatCode(() -> messageEmailService.sendRentalOwnerNotification(
             rentalWithOwnerEmail("owner@example.com"),
@@ -53,10 +48,7 @@ class MessageEmailServiceTest {
     @Test
     void sendRentalOwnerNotificationDoesNotPropagateMailErrors() {
         JavaMailSender mailSender = mock(JavaMailSender.class);
-        MessageEmailService messageEmailService = new MessageEmailService(
-            Optional.of(mailSender),
-            "no-reply@chatop.local"
-        );
+        MessageEmailService messageEmailService = messageEmailService(Optional.of(mailSender));
 
         org.mockito.Mockito.doThrow(new MailSendException("SMTP unavailable"))
             .when(mailSender)
@@ -72,10 +64,7 @@ class MessageEmailServiceTest {
     @Test
     void sendRentalOwnerNotificationSkipsBlankOwnerEmail() {
         JavaMailSender mailSender = mock(JavaMailSender.class);
-        MessageEmailService messageEmailService = new MessageEmailService(
-            Optional.of(mailSender),
-            "no-reply@chatop.local"
-        );
+        MessageEmailService messageEmailService = messageEmailService(Optional.of(mailSender));
 
         messageEmailService.sendRentalOwnerNotification(
             rentalWithOwnerEmail(" "),
@@ -105,5 +94,9 @@ class MessageEmailServiceTest {
         ReflectionTestUtils.setField(user, "id", id);
 
         return user;
+    }
+
+    private MessageEmailService messageEmailService(Optional<JavaMailSender> mailSender) {
+        return new MessageEmailService(mailSender, ChatopPropertiesTestFactory.defaultProperties());
     }
 }

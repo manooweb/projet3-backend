@@ -5,8 +5,8 @@ import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.chatop.api.config.properties.ChatopProperties;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -19,15 +19,15 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 public class JwtConfig {
 
     @Bean
-    JwtEncoder jwtEncoder(@Value("${app.jwt.secret}") String jwtSecret) {
-        SecretKey secretKey = jwtSecretKey(jwtSecret);
+    JwtEncoder jwtEncoder(ChatopProperties chatopProperties) {
+        SecretKey secretKey = jwtSecretKey(chatopProperties.getJwt().getSecret());
 
         return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey));
     }
 
     @Bean
-    JwtDecoder jwtDecoder(@Value("${app.jwt.secret}") String jwtSecret) {
-        return NimbusJwtDecoder.withSecretKey(jwtSecretKey(jwtSecret))
+    JwtDecoder jwtDecoder(ChatopProperties chatopProperties) {
+        return NimbusJwtDecoder.withSecretKey(jwtSecretKey(chatopProperties.getJwt().getSecret()))
             .macAlgorithm(MacAlgorithm.HS256)
             .build();
     }

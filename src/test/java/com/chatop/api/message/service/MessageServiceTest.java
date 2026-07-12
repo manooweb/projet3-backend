@@ -22,6 +22,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.auth.service.CurrentUserService;
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ChatopPropertiesTestFactory;
 import com.chatop.api.message.dto.CreateMessageRequest;
 import com.chatop.api.message.dto.MessageResponse;
 import com.chatop.api.message.model.Message;
@@ -46,8 +48,15 @@ class MessageServiceTest {
         rentalRepository = mock(RentalRepository.class);
         userRepository = mock(UserRepository.class);
         messageEmailService = mock(MessageEmailService.class);
-        currentUserService = new CurrentUserService(userRepository);
-        messageService = new MessageService(messageRepository, rentalRepository, messageEmailService, currentUserService);
+        ChatopProperties chatopProperties = ChatopPropertiesTestFactory.defaultProperties();
+        currentUserService = new CurrentUserService(userRepository, chatopProperties);
+        messageService = new MessageService(
+            messageRepository,
+            rentalRepository,
+            messageEmailService,
+            currentUserService,
+            chatopProperties
+        );
     }
 
     @Test

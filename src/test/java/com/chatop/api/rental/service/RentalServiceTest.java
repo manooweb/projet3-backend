@@ -26,6 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.auth.service.CurrentUserService;
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ChatopPropertiesTestFactory;
 import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
 import com.chatop.api.rental.dto.RentalSummaryResponse;
@@ -49,8 +51,9 @@ class RentalServiceTest {
         rentalRepository = mock(RentalRepository.class);
         userRepository = mock(UserRepository.class);
         rentalPictureStorageService = mock(RentalPictureStorageService.class);
-        currentUserService = new CurrentUserService(userRepository);
-        rentalService = new RentalService(rentalRepository, rentalPictureStorageService, currentUserService);
+        ChatopProperties chatopProperties = ChatopPropertiesTestFactory.defaultProperties();
+        currentUserService = new CurrentUserService(userRepository, chatopProperties);
+        rentalService = new RentalService(rentalRepository, rentalPictureStorageService, currentUserService, chatopProperties);
     }
 
     @Test

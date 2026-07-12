@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.chatop.api.config.properties.ChatopProperties;
 import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
 import com.chatop.api.rental.dto.RentalSummaryResponse;
@@ -29,9 +30,11 @@ import jakarta.validation.Valid;
 public class RentalController {
 
     private final RentalService rentalService;
+    private final ChatopProperties chatopProperties;
 
-    public RentalController(RentalService rentalService) {
+    public RentalController(RentalService rentalService, ChatopProperties chatopProperties) {
         this.rentalService = rentalService;
+        this.chatopProperties = chatopProperties;
     }
 
     @InitBinder
@@ -44,7 +47,7 @@ public class RentalController {
                     return;
                 }
 
-                throw new IllegalArgumentException("Picture must be sent as a file");
+                throw new IllegalArgumentException(chatopProperties.getErrors().getPictureFileRequired());
             }
         });
     }

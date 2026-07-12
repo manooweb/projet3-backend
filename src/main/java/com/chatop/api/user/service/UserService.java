@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ErrorMessagesProperties;
 import com.chatop.api.user.dto.UserResponse;
 import com.chatop.api.user.model.User;
 import com.chatop.api.user.repository.UserRepository;
@@ -13,16 +15,18 @@ import com.chatop.api.user.repository.UserRepository;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ErrorMessagesProperties errors;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, ChatopProperties chatopProperties) {
         this.userRepository = userRepository;
+        this.errors = chatopProperties.getErrors();
     }
 
     @Transactional(readOnly = true)
     public UserResponse findById(Integer id) {
         return userRepository.findById(id)
             .map(this::toResponse)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, errors.getUserNotFound()));
     }
 
     private UserResponse toResponse(User user) {

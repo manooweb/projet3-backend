@@ -19,12 +19,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ChatopPropertiesTestFactory;
 import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
 import com.chatop.api.rental.dto.RentalSummaryResponse;
@@ -34,6 +38,7 @@ import com.chatop.api.rental.service.RentalService;
 
 @WebMvcTest(RentalController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(RentalControllerTest.TestConfig.class)
 class RentalControllerTest {
 
     @Autowired
@@ -41,6 +46,14 @@ class RentalControllerTest {
 
     @MockitoBean
     private RentalService rentalService;
+
+    static class TestConfig {
+
+        @Bean
+        ChatopProperties chatopProperties() {
+            return ChatopPropertiesTestFactory.defaultProperties();
+        }
+    }
 
     @Test
     void findAllReturnsRentals() throws Exception {

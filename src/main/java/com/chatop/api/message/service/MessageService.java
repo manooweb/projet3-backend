@@ -7,6 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.auth.service.CurrentUserService;
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ErrorMessagesProperties;
+import com.chatop.api.config.properties.ResponseMessagesProperties;
 import com.chatop.api.message.dto.CreateMessageRequest;
 import com.chatop.api.message.dto.MessageResponse;
 import com.chatop.api.message.model.Message;
@@ -18,23 +21,26 @@ import com.chatop.api.user.model.User;
 @Service
 public class MessageService {
 
-    private static final String MESSAGE_SENT_MESSAGE = "Message send with success";
-
     private final MessageRepository messageRepository;
     private final RentalRepository rentalRepository;
     private final MessageEmailService messageEmailService;
     private final CurrentUserService currentUserService;
+    private final ResponseMessagesProperties responses;
+    private final ErrorMessagesProperties errors;
 
     public MessageService(
         MessageRepository messageRepository,
         RentalRepository rentalRepository,
         MessageEmailService messageEmailService,
-        CurrentUserService currentUserService
+        CurrentUserService currentUserService,
+        ChatopProperties chatopProperties
     ) {
         this.messageRepository = messageRepository;
         this.rentalRepository = rentalRepository;
         this.messageEmailService = messageEmailService;
         this.currentUserService = currentUserService;
+        this.responses = chatopProperties.getResponses();
+        this.errors = chatopProperties.getErrors();
     }
 
     @Transactional
@@ -42,12 +48,12 @@ public class MessageService {
         Integer authenticatedUserId = currentUserService.getUserId(authentication);
 
         if (!authenticatedUserId.equals(request.userId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user_id");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getInvalidUserId());
         }
 
         User sender = currentUserService.getUser(authenticatedUserId);
         Rental rental = rentalRepository.findById(request.rentalId())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid rental_id"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getInvalidRentalId()));
 
         String messageContent = request.message().trim();
 
@@ -58,6 +64,6 @@ public class MessageService {
         ));
         messageEmailService.sendRentalOwnerNotification(rental, sender, messageContent);
 
-        return new MessageResponse(MESSAGE_SENT_MESSAGE);
+        return new MessageResponse(responses.getMessageSent());
     }
 }

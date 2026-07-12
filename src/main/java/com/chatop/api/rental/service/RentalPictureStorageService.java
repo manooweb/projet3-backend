@@ -10,8 +10,8 @@ import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -19,16 +19,27 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ErrorMessagesProperties;
+import com.chatop.api.config.properties.UploadsProperties;
+
 @Service
 public class RentalPictureStorageService {
 
-    private static final String RENTAL_PICTURE_URL_PATH = "/api/uploads/rentals/";
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
-
     private final Path rentalUploadsPath;
+    private final String rentalPictureUrlPath;
+    private final Set<String> allowedExtensions;
+    private final ErrorMessagesProperties errors;
 
-    public RentalPictureStorageService(@Value("${app.uploads.rentals-dir}") String rentalUploadsDir) {
-        this.rentalUploadsPath = Path.of(rentalUploadsDir).toAbsolutePath().normalize();
+    public RentalPictureStorageService(ChatopProperties chatopProperties) {
+        UploadsProperties uploads = chatopProperties.getUploads();
+
+        this.rentalUploadsPath = Path.of(uploads.getRentalsDir()).toAbsolutePath().normalize();
+        this.rentalPictureUrlPath = withTrailingSlash(uploads.getRentalsUrlPath());
+        this.allowedExtensions = uploads.getAllowedPictureExtensions().stream()
+            .map(extension -> extension.toLowerCase(Locale.ROOT))
+            .collect(Collectors.toUnmodifiableSet());
+        this.errors = chatopProperties.getErrors();
     }
 
     public String store(MultipartFile picture) {
@@ -38,7 +49,7 @@ public class RentalPictureStorageService {
         Path destination = rentalUploadsPath.resolve(filename).normalize();
 
         if (!destination.startsWith(rentalUploadsPath)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid picture filename");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getInvalidPictureFilename());
         }
 
         try {
@@ -48,7 +59,7 @@ public class RentalPictureStorageService {
                 Files.copy(inputStream, destination);
             }
         } catch (IOException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not store picture", exception);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errors.getCouldNotStorePicture(), exception);
         }
 
         return publicUrl(filename);
@@ -64,32 +75,32 @@ public class RentalPictureStorageService {
         try {
             Files.deleteIfExists(picturePath.get());
         } catch (IOException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not delete picture", exception);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errors.getCouldNotDeletePicture(), exception);
         }
     }
 
     private void validatePicture(MultipartFile picture) {
         if (picture == null || picture.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Picture is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getPictureRequired());
         }
 
         String extension = extension(picture.getOriginalFilename())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Picture extension is required"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getPictureExtensionRequired()));
 
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Picture format is not supported");
+        if (!allowedExtensions.contains(extension)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getPictureFormatNotSupported());
         }
 
         String contentType = picture.getContentType();
 
         if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith("image/")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Picture must be an image");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getPictureMustBeImage());
         }
     }
 
     private String uniqueFilename(String originalFilename) {
         String extension = extension(originalFilename)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Picture extension is required"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getPictureExtensionRequired()));
         String baseName = normalizedBaseName(originalFilename);
         String filename = baseName + "." + extension;
         int suffix = 2;
@@ -139,7 +150,7 @@ public class RentalPictureStorageService {
             return Optional.empty();
         }
 
-        if (path == null || !path.startsWith(RENTAL_PICTURE_URL_PATH)) {
+        if (path == null || !path.startsWith(rentalPictureUrlPath)) {
             return Optional.empty();
         }
 
@@ -156,8 +167,12 @@ public class RentalPictureStorageService {
     private String publicUrl(String filename) {
         return ServletUriComponentsBuilder
             .fromCurrentContextPath()
-            .path(RENTAL_PICTURE_URL_PATH)
+            .path(rentalPictureUrlPath)
             .path(filename)
             .toUriString();
+    }
+
+    private String withTrailingSlash(String path) {
+        return path.endsWith("/") ? path : path + "/";
     }
 }

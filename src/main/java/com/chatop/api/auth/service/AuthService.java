@@ -14,6 +14,8 @@ import com.chatop.api.auth.dto.AuthenticatedUserResponse;
 import com.chatop.api.auth.dto.AuthTokenResponse;
 import com.chatop.api.auth.dto.LoginRequest;
 import com.chatop.api.auth.dto.RegisterRequest;
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ErrorMessagesProperties;
 import com.chatop.api.user.model.User;
 import com.chatop.api.user.repository.UserRepository;
 
@@ -24,17 +26,20 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final CurrentUserService currentUserService;
+    private final ErrorMessagesProperties errors;
 
     public AuthService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
         JwtService jwtService,
-        CurrentUserService currentUserService
+        CurrentUserService currentUserService,
+        ChatopProperties chatopProperties
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.currentUserService = currentUserService;
+        this.errors = chatopProperties.getErrors();
     }
 
     @Transactional
@@ -42,7 +47,7 @@ public class AuthService {
         String email = normalizeEmail(request.email());
 
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getEmailAlreadyExists());
         }
 
         User user = new User(
@@ -56,7 +61,7 @@ public class AuthService {
 
             return new AuthTokenResponse(jwtService.generateToken(savedUser));
         } catch (DataIntegrityViolationException exception) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists", exception);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors.getEmailAlreadyExists(), exception);
         }
     }
 
@@ -89,6 +94,6 @@ public class AuthService {
     }
 
     private ResponseStatusException invalidCredentials() {
-        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, errors.getInvalidCredentials());
     }
 }

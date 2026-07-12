@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ErrorMessagesProperties;
 import com.chatop.api.user.model.User;
 import com.chatop.api.user.repository.UserRepository;
 
@@ -16,9 +18,11 @@ import com.chatop.api.user.repository.UserRepository;
 public class CurrentUserService {
 
     private final UserRepository userRepository;
+    private final ErrorMessagesProperties errors;
 
-    public CurrentUserService(UserRepository userRepository) {
+    public CurrentUserService(UserRepository userRepository, ChatopProperties chatopProperties) {
         this.userRepository = userRepository;
+        this.errors = chatopProperties.getErrors();
     }
 
     public Integer getUserId(Authentication authentication) {
@@ -64,6 +68,6 @@ public class CurrentUserService {
     }
 
     private ResponseStatusException unauthorized() {
-        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, errors.getUnauthorized());
     }
 }

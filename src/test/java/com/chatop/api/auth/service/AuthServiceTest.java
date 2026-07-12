@@ -23,6 +23,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.chatop.api.auth.dto.AuthenticatedUserResponse;
 import com.chatop.api.auth.dto.AuthTokenResponse;
 import com.chatop.api.auth.dto.LoginRequest;
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ChatopPropertiesTestFactory;
 import com.chatop.api.user.model.User;
 import com.chatop.api.user.repository.UserRepository;
 
@@ -39,8 +41,9 @@ class AuthServiceTest {
         userRepository = mock(UserRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         jwtService = mock(JwtService.class);
-        currentUserService = new CurrentUserService(userRepository);
-        authService = new AuthService(userRepository, passwordEncoder, jwtService, currentUserService);
+        ChatopProperties chatopProperties = ChatopPropertiesTestFactory.defaultProperties();
+        currentUserService = new CurrentUserService(userRepository, chatopProperties);
+        authService = new AuthService(userRepository, passwordEncoder, jwtService, currentUserService, chatopProperties);
     }
 
     @Test

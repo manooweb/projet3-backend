@@ -1,5 +1,6 @@
 package com.chatop.api.config;
 
+import com.chatop.api.config.properties.ChatopProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,7 +14,10 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(
+        HttpSecurity http,
+        ChatopProperties chatopProperties
+    ) throws Exception {
         return http
             .csrf(csrf -> csrf.disable())
             .formLogin(formLogin -> formLogin.disable())
@@ -28,7 +32,7 @@ public class SecurityConfig {
                     "/swagger-ui/**"
                 ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/uploads/rentals/**").permitAll()
+                .requestMatchers(HttpMethod.GET, pathPattern(chatopProperties.getUploads().getRentalsUrlPath())).permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
                 .anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
@@ -38,5 +42,9 @@ public class SecurityConfig {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private String pathPattern(String path) {
+        return (path.endsWith("/") ? path : path + "/") + "**";
     }
 }

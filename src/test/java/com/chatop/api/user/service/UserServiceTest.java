@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.config.properties.ChatopPropertiesTestFactory;
 import com.chatop.api.user.dto.UserResponse;
 import com.chatop.api.user.model.User;
 import com.chatop.api.user.repository.UserRepository;
@@ -26,7 +27,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
-        userService = new UserService(userRepository);
+        userService = new UserService(userRepository, ChatopPropertiesTestFactory.defaultProperties());
     }
 
     @Test

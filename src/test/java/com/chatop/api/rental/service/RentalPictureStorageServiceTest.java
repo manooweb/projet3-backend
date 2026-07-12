@@ -17,6 +17,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.config.properties.ChatopPropertiesTestFactory;
+
 class RentalPictureStorageServiceTest {
 
     @TempDir
@@ -30,7 +32,7 @@ class RentalPictureStorageServiceTest {
     @Test
     void storeWritesPictureAndReturnsPublicUrl() throws Exception {
         mockCurrentRequest();
-        RentalPictureStorageService storageService = new RentalPictureStorageService(uploadsPath.toString());
+        RentalPictureStorageService storageService = storageService();
 
         String pictureUrl = storageService.store(new MockMultipartFile(
             "picture",
@@ -49,7 +51,7 @@ class RentalPictureStorageServiceTest {
     @Test
     void storeAddsNumericSuffixWhenNormalizedFilenameAlreadyExists() throws Exception {
         mockCurrentRequest();
-        RentalPictureStorageService storageService = new RentalPictureStorageService(uploadsPath.toString());
+        RentalPictureStorageService storageService = storageService();
 
         storageService.store(new MockMultipartFile(
             "picture",
@@ -75,7 +77,7 @@ class RentalPictureStorageServiceTest {
     @Test
     void storeThrowsBadRequestWhenFileIsNotAnImage() {
         mockCurrentRequest();
-        RentalPictureStorageService storageService = new RentalPictureStorageService(uploadsPath.toString());
+        RentalPictureStorageService storageService = storageService();
 
         assertThatThrownBy(() -> storageService.store(new MockMultipartFile(
                 "picture",
@@ -92,7 +94,7 @@ class RentalPictureStorageServiceTest {
     void deleteRemovesLocalPictureFromPublicUrl() throws Exception {
         Path picturePath = uploadsPath.resolve("house.jpg");
         Files.writeString(picturePath, "image-content");
-        RentalPictureStorageService storageService = new RentalPictureStorageService(uploadsPath.toString());
+        RentalPictureStorageService storageService = storageService();
 
         storageService.delete("http://localhost:9001/api/uploads/rentals/house.jpg");
 
@@ -103,7 +105,7 @@ class RentalPictureStorageServiceTest {
     void deleteIgnoresExternalPictureUrl() throws Exception {
         Path picturePath = uploadsPath.resolve("house.jpg");
         Files.writeString(picturePath, "image-content");
-        RentalPictureStorageService storageService = new RentalPictureStorageService(uploadsPath.toString());
+        RentalPictureStorageService storageService = storageService();
 
         storageService.delete("https://example.com/uploads/house.jpg");
 
@@ -116,5 +118,9 @@ class RentalPictureStorageServiceTest {
         request.setServerName("localhost");
         request.setServerPort(9001);
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    }
+
+    private RentalPictureStorageService storageService() {
+        return new RentalPictureStorageService(ChatopPropertiesTestFactory.propertiesWithUploadsDir(uploadsPath.toString()));
     }
 }

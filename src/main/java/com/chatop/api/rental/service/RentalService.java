@@ -9,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.chatop.api.auth.service.CurrentUserService;
+import com.chatop.api.config.properties.ChatopProperties;
+import com.chatop.api.config.properties.ErrorMessagesProperties;
+import com.chatop.api.config.properties.ResponseMessagesProperties;
 import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
 import com.chatop.api.rental.dto.RentalSummaryResponse;
@@ -21,21 +24,23 @@ import com.chatop.api.user.model.User;
 @Service
 public class RentalService {
 
-    private static final String RENTAL_CREATED_MESSAGE = "Rental created !";
-    private static final String RENTAL_UPDATED_MESSAGE = "Rental updated !";
-
     private final RentalRepository rentalRepository;
     private final RentalPictureStorageService rentalPictureStorageService;
     private final CurrentUserService currentUserService;
+    private final ResponseMessagesProperties responses;
+    private final ErrorMessagesProperties errors;
 
     public RentalService(
         RentalRepository rentalRepository,
         RentalPictureStorageService rentalPictureStorageService,
-        CurrentUserService currentUserService
+        CurrentUserService currentUserService,
+        ChatopProperties chatopProperties
     ) {
         this.rentalRepository = rentalRepository;
         this.rentalPictureStorageService = rentalPictureStorageService;
         this.currentUserService = currentUserService;
+        this.responses = chatopProperties.getResponses();
+        this.errors = chatopProperties.getErrors();
     }
 
     @Transactional(readOnly = true)
@@ -51,7 +56,7 @@ public class RentalService {
     public RentalSummaryResponse findById(Integer id) {
         return rentalRepository.findById(id)
             .map(this::toSummaryResponse)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rental not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, errors.getRentalNotFound()));
     }
 
     @Transactional
@@ -70,16 +75,16 @@ public class RentalService {
 
         rentalRepository.save(rental);
 
-        return new RentalResponse(RENTAL_CREATED_MESSAGE);
+        return new RentalResponse(responses.getRentalCreated());
     }
 
     @Transactional
     public RentalResponse update(Integer id, UpdateRentalRequest request, Authentication authentication) {
         Rental rental = rentalRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rental not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, errors.getRentalNotFound()));
 
         if (!rental.getOwner().getId().equals(currentUserService.getUserId(authentication))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, errors.getForbidden());
         }
 
         String oldPictureUrl = rental.getPicture();
@@ -103,7 +108,7 @@ public class RentalService {
             rentalPictureStorageService.delete(oldPictureUrl);
         }
 
-        return new RentalResponse(RENTAL_UPDATED_MESSAGE);
+        return new RentalResponse(responses.getRentalUpdated());
     }
 
     private RentalSummaryResponse toSummaryResponse(Rental rental) {
