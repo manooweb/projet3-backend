@@ -1,5 +1,6 @@
 package com.chatop.api.config;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -75,6 +76,30 @@ class SecurityConfigTest {
             .andExpect(jsonPath("$.error", is("Forbidden")))
             .andExpect(jsonPath("$.message", is("Forbidden")))
             .andExpect(jsonPath("$.path", is("/api/auth/login")));
+    }
+
+    @Test
+    void rootPageIsServedWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("ChâTop API")))
+            .andExpect(content().string(containsString("/swagger-ui.html")));
+    }
+
+    @Test
+    void swaggerUiIndexIncludesHomeLinkScript() throws Exception {
+        mockMvc.perform(get("/swagger-ui/index.html"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("/js/swagger-home-link.js")));
+    }
+
+    @Test
+    void swaggerHomeLinkScriptIsServedWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/js/swagger-home-link.js"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString(".renderedMarkdown a[href=\"/\"]")))
+            .andExpect(content().string(containsString("text-decoration: none")))
+            .andExpect(content().string(containsString("text-decoration: underline")));
     }
 
     @Test

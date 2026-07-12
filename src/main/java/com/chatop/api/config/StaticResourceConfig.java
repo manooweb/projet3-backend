@@ -2,6 +2,7 @@ package com.chatop.api.config;
 
 import java.nio.file.Path;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -10,26 +11,25 @@ import com.chatop.api.config.properties.ChatopProperties;
 import com.chatop.api.config.properties.UploadsProperties;
 
 @Configuration
-public class StaticResourceConfig implements WebMvcConfigurer {
+public class StaticResourceConfig {
 
-    private final Path rentalUploadsPath;
-    private final String rentalUploadsUrlPathPattern;
-
-    public StaticResourceConfig(ChatopProperties chatopProperties) {
+    @Bean
+    WebMvcConfigurer rentalUploadsResourceConfigurer(ChatopProperties chatopProperties) {
         UploadsProperties uploads = chatopProperties.getUploads();
+        Path rentalUploadsPath = Path.of(uploads.getRentalsDir()).toAbsolutePath().normalize();
+        String rentalUploadsUrlPathPattern = uploads.getRentalsUrlPathPattern();
 
-        this.rentalUploadsPath = Path.of(uploads.getRentalsDir()).toAbsolutePath().normalize();
-        this.rentalUploadsUrlPathPattern = uploads.getRentalsUrlPathPattern();
+        return new WebMvcConfigurer() {
+            @Override
+            public void addResourceHandlers(ResourceHandlerRegistry registry) {
+                registry
+                    .addResourceHandler(rentalUploadsUrlPathPattern)
+                    .addResourceLocations(resourceLocation(rentalUploadsPath));
+            }
+        };
     }
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry
-            .addResourceHandler(rentalUploadsUrlPathPattern)
-            .addResourceLocations(resourceLocation());
-    }
-
-    private String resourceLocation() {
+    private String resourceLocation(Path rentalUploadsPath) {
         String location = rentalUploadsPath.toUri().toString();
 
         return location.endsWith("/") ? location : location + "/";

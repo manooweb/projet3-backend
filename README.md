@@ -175,6 +175,12 @@ The API starts on:
 http://localhost:9001
 ```
 
+Home page:
+
+```text
+http://localhost:9001
+```
+
 Health check:
 
 ```text

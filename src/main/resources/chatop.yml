@@ -26,7 +26,10 @@ chatop:
       delivery-failure-log: Unable to send rental message email notification
   open-api:
     title: Châtop API
-    description: Backend REST API for the Châtop project.
+    description: |
+      Backend REST API for the Châtop project.
+
+      <a href="/" target="_self">🏠 API home</a>
     version: v1
   system:
     name: Châtop API
