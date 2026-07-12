@@ -15,4 +15,12 @@ public class UploadsProperties {
     private String rentalsDir;
     private String rentalsUrlPath;
     private List<String> allowedPictureExtensions;
+
+    public String getRentalsUrlPathWithTrailingSlash() {
+        return rentalsUrlPath.endsWith("/") ? rentalsUrlPath : rentalsUrlPath + "/";
+    }
+
+    public String getRentalsUrlPathPattern() {
+        return getRentalsUrlPathWithTrailingSlash() + "**";
+    }
 }

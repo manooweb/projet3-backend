@@ -35,7 +35,7 @@ public class RentalPictureStorageService {
         UploadsProperties uploads = chatopProperties.getUploads();
 
         this.rentalUploadsPath = Path.of(uploads.getRentalsDir()).toAbsolutePath().normalize();
-        this.rentalPictureUrlPath = withTrailingSlash(uploads.getRentalsUrlPath());
+        this.rentalPictureUrlPath = uploads.getRentalsUrlPathWithTrailingSlash();
         this.allowedExtensions = uploads.getAllowedPictureExtensions().stream()
             .map(extension -> extension.toLowerCase(Locale.ROOT))
             .collect(Collectors.toUnmodifiableSet());
@@ -172,7 +172,4 @@ public class RentalPictureStorageService {
             .toUriString();
     }
 
-    private String withTrailingSlash(String path) {
-        return path.endsWith("/") ? path : path + "/";
-    }
 }
