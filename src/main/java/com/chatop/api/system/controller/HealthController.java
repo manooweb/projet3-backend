@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.chatop.api.config.properties.ChatopProperties;
 import com.chatop.api.config.properties.SystemProperties;
 
+/**
+ * Exposes system health information.
+ */
 @RestController
 @RequestMapping("/api")
 public class HealthController {
@@ -17,6 +20,11 @@ public class HealthController {
         this.system = chatopProperties.getSystem();
     }
 
+    /**
+     * Returns the API health status.
+     *
+     * @return the current health status
+     */
     @GetMapping("/health")
     public HealthResponse health() {
         return new HealthResponse(system.getHealthStatus());

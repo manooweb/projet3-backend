@@ -12,6 +12,9 @@ import com.chatop.api.message.service.MessageService;
 
 import jakarta.validation.Valid;
 
+/**
+ * Exposes endpoints used to contact rental owners.
+ */
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
@@ -22,6 +25,13 @@ public class MessageController {
         this.messageService = messageService;
     }
 
+    /**
+     * Sends a message from the authenticated user to a rental owner.
+     *
+     * @param request the message payload containing the rental, sender and message content
+     * @param authentication the authenticated principal resolved by Spring Security
+     * @return a success response once the message has been created
+     */
     @PostMapping
     public MessageResponse create(
         @Valid @RequestBody CreateMessageRequest request,

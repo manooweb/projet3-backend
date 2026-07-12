@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.chatop.api.config.properties.ChatopProperties;
 import com.chatop.api.config.properties.SystemProperties;
 
+/**
+ * Exposes a lightweight API entry point.
+ */
 @RestController
 public class RootController {
 
@@ -17,6 +20,11 @@ public class RootController {
         this.system = chatopProperties.getSystem();
     }
 
+    /**
+     * Returns basic API discovery information.
+     *
+     * @return the API name, status and health endpoint path
+     */
     @GetMapping("/")
     public Map<String, String> root() {
         return Map.of(

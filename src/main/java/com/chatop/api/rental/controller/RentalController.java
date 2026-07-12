@@ -25,6 +25,9 @@ import com.chatop.api.rental.service.RentalService;
 
 import jakarta.validation.Valid;
 
+/**
+ * Exposes rental listing, detail, creation and update endpoints.
+ */
 @RestController
 @RequestMapping("/api/rentals")
 public class RentalController {
@@ -52,16 +55,34 @@ public class RentalController {
         });
     }
 
+    /**
+     * Lists all rentals available through the API.
+     *
+     * @return the rentals collection
+     */
     @GetMapping
     public RentalsResponse findAll() {
         return rentalService.findAll();
     }
 
+    /**
+     * Returns the details of a single rental.
+     *
+     * @param id the rental identifier
+     * @return the rental details
+     */
     @GetMapping("/{id}")
     public RentalSummaryResponse findById(@PathVariable Integer id) {
         return rentalService.findById(id);
     }
 
+    /**
+     * Creates a rental owned by the authenticated user.
+     *
+     * @param request the multipart rental payload including the required picture
+     * @param authentication the authenticated principal resolved by Spring Security
+     * @return a success response once the rental has been created
+     */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public RentalResponse create(
         @Valid @ModelAttribute CreateRentalRequest request,
@@ -70,6 +91,14 @@ public class RentalController {
         return rentalService.create(request, authentication);
     }
 
+    /**
+     * Updates an existing rental owned by the authenticated user.
+     *
+     * @param id the rental identifier
+     * @param request the multipart rental payload, with an optional replacement picture
+     * @param authentication the authenticated principal resolved by Spring Security
+     * @return a success response once the rental has been updated
+     */
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public RentalResponse update(
         @PathVariable Integer id,
