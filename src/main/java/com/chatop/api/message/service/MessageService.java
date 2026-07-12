@@ -1,14 +1,12 @@
 package com.chatop.api.message.service;
 
-import java.util.Optional;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.auth.service.CurrentUserService;
 import com.chatop.api.message.dto.CreateMessageRequest;
 import com.chatop.api.message.dto.MessageResponse;
 import com.chatop.api.message.model.Message;
@@ -16,7 +14,6 @@ import com.chatop.api.message.repository.MessageRepository;
 import com.chatop.api.rental.model.Rental;
 import com.chatop.api.rental.repository.RentalRepository;
 import com.chatop.api.user.model.User;
-import com.chatop.api.user.repository.UserRepository;
 
 @Service
 public class MessageService {
@@ -25,31 +22,30 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final RentalRepository rentalRepository;
-    private final UserRepository userRepository;
     private final MessageEmailService messageEmailService;
+    private final CurrentUserService currentUserService;
 
     public MessageService(
         MessageRepository messageRepository,
         RentalRepository rentalRepository,
-        UserRepository userRepository,
-        MessageEmailService messageEmailService
+        MessageEmailService messageEmailService,
+        CurrentUserService currentUserService
     ) {
         this.messageRepository = messageRepository;
         this.rentalRepository = rentalRepository;
-        this.userRepository = userRepository;
         this.messageEmailService = messageEmailService;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
     public MessageResponse create(CreateMessageRequest request, Authentication authentication) {
-        Integer authenticatedUserId = userIdFromToken(authentication);
+        Integer authenticatedUserId = currentUserService.getUserId(authentication);
 
         if (!authenticatedUserId.equals(request.userId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user_id");
         }
 
-        User sender = userRepository.findById(authenticatedUserId)
-            .orElseThrow(this::unauthorized);
+        User sender = currentUserService.getUser(authenticatedUserId);
         Rental rental = rentalRepository.findById(request.rentalId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid rental_id"));
 
@@ -63,36 +59,5 @@ public class MessageService {
         messageEmailService.sendRentalOwnerNotification(rental, sender, messageContent);
 
         return new MessageResponse(MESSAGE_SENT_MESSAGE);
-    }
-
-    private Integer userIdFromToken(Authentication authentication) {
-        return Optional.ofNullable(authentication)
-            .map(Authentication::getPrincipal)
-            .filter(Jwt.class::isInstance)
-            .map(Jwt.class::cast)
-            .map(this::userIdFromToken)
-            .orElseThrow(this::unauthorized);
-    }
-
-    private Integer userIdFromToken(Jwt jwt) {
-        Object userIdClaim = jwt.getClaims().get("userId");
-
-        if (userIdClaim instanceof Number number) {
-            return number.intValue();
-        }
-
-        if (userIdClaim instanceof String userId) {
-            try {
-                return Integer.valueOf(userId);
-            } catch (NumberFormatException exception) {
-                throw unauthorized();
-            }
-        }
-
-        throw unauthorized();
-    }
-
-    private ResponseStatusException unauthorized() {
-        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
     }
 }

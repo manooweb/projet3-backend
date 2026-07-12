@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.auth.service.CurrentUserService;
 import com.chatop.api.message.dto.CreateMessageRequest;
 import com.chatop.api.message.dto.MessageResponse;
 import com.chatop.api.message.model.Message;
@@ -36,6 +37,7 @@ class MessageServiceTest {
     private RentalRepository rentalRepository;
     private UserRepository userRepository;
     private MessageEmailService messageEmailService;
+    private CurrentUserService currentUserService;
     private MessageService messageService;
 
     @BeforeEach
@@ -44,7 +46,8 @@ class MessageServiceTest {
         rentalRepository = mock(RentalRepository.class);
         userRepository = mock(UserRepository.class);
         messageEmailService = mock(MessageEmailService.class);
-        messageService = new MessageService(messageRepository, rentalRepository, userRepository, messageEmailService);
+        currentUserService = new CurrentUserService(userRepository);
+        messageService = new MessageService(messageRepository, rentalRepository, messageEmailService, currentUserService);
     }
 
     @Test

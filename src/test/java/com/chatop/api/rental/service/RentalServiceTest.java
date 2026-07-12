@@ -25,6 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.auth.service.CurrentUserService;
 import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
 import com.chatop.api.rental.dto.RentalSummaryResponse;
@@ -40,6 +41,7 @@ class RentalServiceTest {
     private RentalRepository rentalRepository;
     private UserRepository userRepository;
     private RentalPictureStorageService rentalPictureStorageService;
+    private CurrentUserService currentUserService;
     private RentalService rentalService;
 
     @BeforeEach
@@ -47,7 +49,8 @@ class RentalServiceTest {
         rentalRepository = mock(RentalRepository.class);
         userRepository = mock(UserRepository.class);
         rentalPictureStorageService = mock(RentalPictureStorageService.class);
-        rentalService = new RentalService(rentalRepository, userRepository, rentalPictureStorageService);
+        currentUserService = new CurrentUserService(userRepository);
+        rentalService = new RentalService(rentalRepository, rentalPictureStorageService, currentUserService);
     }
 
     @Test

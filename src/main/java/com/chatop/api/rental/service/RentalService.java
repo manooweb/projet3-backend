@@ -1,15 +1,14 @@
 package com.chatop.api.rental.service;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.chatop.api.auth.service.CurrentUserService;
 import com.chatop.api.rental.dto.CreateRentalRequest;
 import com.chatop.api.rental.dto.RentalResponse;
 import com.chatop.api.rental.dto.RentalSummaryResponse;
@@ -18,7 +17,6 @@ import com.chatop.api.rental.dto.UpdateRentalRequest;
 import com.chatop.api.rental.model.Rental;
 import com.chatop.api.rental.repository.RentalRepository;
 import com.chatop.api.user.model.User;
-import com.chatop.api.user.repository.UserRepository;
 
 @Service
 public class RentalService {
@@ -27,17 +25,17 @@ public class RentalService {
     private static final String RENTAL_UPDATED_MESSAGE = "Rental updated !";
 
     private final RentalRepository rentalRepository;
-    private final UserRepository userRepository;
     private final RentalPictureStorageService rentalPictureStorageService;
+    private final CurrentUserService currentUserService;
 
     public RentalService(
         RentalRepository rentalRepository,
-        UserRepository userRepository,
-        RentalPictureStorageService rentalPictureStorageService
+        RentalPictureStorageService rentalPictureStorageService,
+        CurrentUserService currentUserService
     ) {
         this.rentalRepository = rentalRepository;
-        this.userRepository = userRepository;
         this.rentalPictureStorageService = rentalPictureStorageService;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional(readOnly = true)
@@ -58,8 +56,7 @@ public class RentalService {
 
     @Transactional
     public RentalResponse create(CreateRentalRequest request, Authentication authentication) {
-        User owner = userRepository.findById(userIdFromToken(authentication))
-            .orElseThrow(this::unauthorized);
+        User owner = currentUserService.getUser(authentication);
         String pictureUrl = rentalPictureStorageService.store(request.getPicture());
 
         Rental rental = new Rental(
@@ -81,7 +78,7 @@ public class RentalService {
         Rental rental = rentalRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rental not found"));
 
-        if (!rental.getOwner().getId().equals(userIdFromToken(authentication))) {
+        if (!rental.getOwner().getId().equals(currentUserService.getUserId(authentication))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
         }
 
@@ -123,34 +120,4 @@ public class RentalService {
         );
     }
 
-    private Integer userIdFromToken(Authentication authentication) {
-        return Optional.ofNullable(authentication)
-            .map(Authentication::getPrincipal)
-            .filter(Jwt.class::isInstance)
-            .map(Jwt.class::cast)
-            .map(this::userIdFromToken)
-            .orElseThrow(this::unauthorized);
-    }
-
-    private Integer userIdFromToken(Jwt jwt) {
-        Object userIdClaim = jwt.getClaims().get("userId");
-
-        if (userIdClaim instanceof Number number) {
-            return number.intValue();
-        }
-
-        if (userIdClaim instanceof String userId) {
-            try {
-                return Integer.valueOf(userId);
-            } catch (NumberFormatException exception) {
-                throw unauthorized();
-            }
-        }
-
-        throw unauthorized();
-    }
-
-    private ResponseStatusException unauthorized() {
-        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
-    }
 }

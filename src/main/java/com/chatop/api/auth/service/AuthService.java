@@ -1,13 +1,11 @@
 package com.chatop.api.auth.service;
 
 import java.util.Locale;
-import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -25,15 +23,18 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final CurrentUserService currentUserService;
 
     public AuthService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
-        JwtService jwtService
+        JwtService jwtService,
+        CurrentUserService currentUserService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
@@ -74,15 +75,7 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthenticatedUserResponse me(Authentication authentication) {
-        Integer userId = Optional.ofNullable(authentication)
-            .map(Authentication::getPrincipal)
-            .filter(Jwt.class::isInstance)
-            .map(Jwt.class::cast)
-            .map(this::userIdFromToken)
-            .orElseThrow(this::unauthorized);
-
-        User user = userRepository.findById(userId)
-            .orElseThrow(this::unauthorized);
+        User user = currentUserService.getUser(authentication);
 
         return new AuthenticatedUserResponse(
             user.getId(),
@@ -95,29 +88,7 @@ public class AuthService {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 
-    private Integer userIdFromToken(Jwt jwt) {
-        Object userIdClaim = jwt.getClaims().get("userId");
-
-        if (userIdClaim instanceof Number number) {
-            return number.intValue();
-        }
-
-        if (userIdClaim instanceof String userId) {
-            try {
-                return Integer.valueOf(userId);
-            } catch (NumberFormatException exception) {
-                throw unauthorized();
-            }
-        }
-
-        throw unauthorized();
-    }
-
     private ResponseStatusException invalidCredentials() {
         return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
-    }
-
-    private ResponseStatusException unauthorized() {
-        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
     }
 }
