@@ -1,4 +1,4 @@
-package com.chatop.api.exception;
+package com.chatop.api.exception.dto;
 
 import java.util.List;
 
