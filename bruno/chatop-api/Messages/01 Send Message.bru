@@ -1,0 +1,33 @@
+meta {
+  name: Send Message
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/messages
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "rental_id": {{rentalId}},
+    "user_id": {{userId}},
+    "message": "Message sent from Bruno"
+  }
+}
+
+tests {
+  test("status is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has message confirmation", function () {
+    expect(res.body.message).to.equal("Message send with success");
+  });
+}

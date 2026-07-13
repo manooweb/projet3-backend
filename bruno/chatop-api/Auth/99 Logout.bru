@@ -1,0 +1,29 @@
+meta {
+  name: Logout
+  type: http
+  seq: 99
+}
+
+post {
+  url: {{baseUrl}}/api/auth/logout
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("status is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has logout message", function () {
+    expect(res.body.message).to.equal("Logout successful");
+  });
+
+  test("auth cookie is deleted", function () {
+    const setCookies = res.headers["set-cookie"] || [];
+    const found = setCookies.some((cookie) =>
+      cookie.includes("CHATOP_AUTH=") && cookie.includes("Max-Age=0")
+    );
+    expect(found).to.equal(true);
+  });
+}

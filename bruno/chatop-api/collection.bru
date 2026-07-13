@@ -1,0 +1,48 @@
+meta {
+  name: ChâTop API
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:9001
+}
+
+script:pre-request {
+  const method = req.getMethod();
+
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    return;
+  }
+
+  const requestUrl = req.getUrl();
+  const jar = bru.cookies.jar();
+  let csrfCookie = await jar.getCookie(requestUrl, "XSRF-TOKEN");
+
+  if (!csrfCookie || !csrfCookie.value) {
+    const baseUrl = bru.interpolate("{{baseUrl}}");
+    const csrfResponse = await bru.sendRequest({
+      method: "GET",
+      url: `${baseUrl}/api/auth/csrf`
+    });
+
+    csrfCookie = await jar.getCookie(requestUrl, "XSRF-TOKEN");
+
+    if (!csrfCookie || !csrfCookie.value) {
+      const headers = csrfResponse.headers || {};
+      const setCookieHeader = headers["set-cookie"] || headers["Set-Cookie"] || [];
+      const setCookies = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+      const xsrfCookie = setCookies.find((cookie) => cookie.includes("XSRF-TOKEN="));
+      const xsrfToken = xsrfCookie?.match(/XSRF-TOKEN=([^;]+)/)?.[1];
+
+      if (xsrfToken) {
+        await jar.setCookie(requestUrl, "XSRF-TOKEN", decodeURIComponent(xsrfToken));
+        csrfCookie = await jar.getCookie(requestUrl, "XSRF-TOKEN");
+      }
+    }
+  }
+
+  if (!csrfCookie || !csrfCookie.value) {
+    throw new Error("Unable to initialize CSRF token from /api/auth/csrf");
+  }
+
+  req.setHeader("X-XSRF-TOKEN", csrfCookie.value);
+}

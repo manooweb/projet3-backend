@@ -1,0 +1,15 @@
+{
+  "version": "1",
+  "name": "ChâTop API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ],
+  "size": 0.0066776275634765625,
+  "filesCount": 13,
+  "presets": {
+    "requestType": "http",
+    "requestUrl": ""
+  }
+}

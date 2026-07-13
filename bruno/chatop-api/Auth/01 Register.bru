@@ -1,0 +1,53 @@
+meta {
+  name: Register
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/auth/register
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "{{registerName}}",
+    "email": "{{registerEmail}}",
+    "password": "{{registerPassword}}"
+  }
+}
+
+vars:pre-request {
+  registerName: Test
+  registerEmail: test@chatop.com
+  registerPassword: password
+}
+
+tests {
+  test("status is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("response has authentication message", function () {
+    expect(res.body.message).to.equal("Authentication successful");
+  });
+  
+  test("auth cookie is returned", function () {
+    const setCookies = res.headers["set-cookie"] || [];
+    const found = setCookies.some((cookie) => cookie.includes("CHATOP_AUTH="));
+    expect(found).to.equal(true);
+  });
+  
+  test("token is not returned in body", function () {
+    expect(res.body.token).to.equal(undefined);
+  });
+}
+
+docs {
+  Change registerEmail before running again if the email already exists.
+}

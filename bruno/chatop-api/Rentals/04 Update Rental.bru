@@ -1,0 +1,32 @@
+meta {
+  name: Update Rental
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/rentals/{{rentalId}}
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  name: Bruno rental updated
+  surface: 90
+  price: 1500
+  description: Updated from Bruno
+}
+
+tests {
+  test("status is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has update message", function () {
+    expect(res.body.message).to.equal("Rental updated !");
+  });
+}

@@ -1,0 +1,36 @@
+meta {
+  name: Get User
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/user/{{userId}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  userId: 3
+}
+
+script:pre-request {
+  const baseUrl = bru.interpolate("{{baseUrl}}");
+  const userId = bru.getVar("userId") || bru.getEnvVar("userId") || "1";
+  
+  req.setUrl(`${baseUrl}/api/user/${userId}`);
+}
+
+tests {
+  test("status is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("response has user fields", function () {
+    expect(res.body.id).to.be.a("number");
+    expect(res.body.name).to.be.a("string");
+    expect(res.body.email).to.be.a("string");
+    expect(res.body.created_at).to.be.a("string");
+    expect(res.body.updated_at).to.be.a("string");
+  });
+}

@@ -1,0 +1,47 @@
+meta {
+  name: Login
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{loginEmail}}",
+    "password": "{{loginPassword}}"
+  }
+}
+
+vars:pre-request {
+  loginEmail: test@chatop.com
+  loginPassword: password
+}
+
+tests {
+  test("status is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("response has authentication message", function () {
+    expect(res.body.message).to.equal("Authentication successful");
+  });
+  
+  test("auth cookie is returned", function () {
+    const setCookies = res.headers["set-cookie"] || [];
+    const found = setCookies.some((cookie) => cookie.includes("CHATOP_AUTH="));
+    expect(found).to.equal(true);
+  });
+  
+  test("token is not returned in body", function () {
+    expect(res.body.token).to.equal(undefined);
+  });
+}

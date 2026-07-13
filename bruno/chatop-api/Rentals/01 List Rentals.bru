@@ -1,0 +1,27 @@
+meta {
+  name: List Rentals
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/rentals
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("status is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("response has rentals array", function () {
+    expect(res.body.rentals).to.be.an("array");
+  });
+  
+  test("save first rentalId when available", function () {
+    if (res.body.rentals.length > 0) {
+      bru.setVar("rentalId", res.body.rentals[0].id);
+    }
+  });
+}
