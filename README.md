@@ -348,9 +348,9 @@ The demo frontend is a separate Angular application:
 
 - [manooweb/projet3-frontend](https://github.com/manooweb/projet3-frontend)
 
-For API demonstrations, use the frontend `main` branch. It is connected to this backend API.
+For API demonstrations, use the frontend `main` branch. It is connected to this backend API and does not require Mockoon.
 
-The original Mockoon-based frontend starter should be kept on a separate backup branch if it is still needed. Mockoon is not required for the connected API demonstration branch.
+For usage with Mockoon, use the frontend `original-mockoon-integration` branch.
 
 For local testing, the backend API base URL is:
 
