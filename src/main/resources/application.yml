@@ -47,6 +47,10 @@ spring:
 server:
   port: 9001
 
+logging:
+  level:
+    "[org.apache.coyote.http11.Http11Processor]": WARN
+
 springdoc:
   api-docs:
     path: /v3/api-docs
