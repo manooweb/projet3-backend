@@ -22,7 +22,18 @@ The SQL schema is available in this backend folder:
 chatop.sql
 ```
 
-The application uses `spring.jpa.hibernate.ddl-auto=validate`, so Spring Boot checks that the schema matches the entities, but it does not create the tables automatically. The SQL script must be imported before starting the API.
+By default, the API can start even when MySQL is unavailable. This lets the home page and `/api/health` load cleanly and report the database as `DOWN` instead of failing during Spring Boot startup.
+
+The SQL script must still be imported before using database-backed API endpoints. If you want a strict schema check after MySQL is running, launch the API with:
+
+```bash
+JPA_DDL_AUTO=validate \
+HIBERNATE_BOOT_ALLOW_JDBC_METADATA_ACCESS=true \
+DB_INITIALIZATION_FAIL_TIMEOUT=1 \
+bash ./mvnw spring-boot:run
+```
+
+In strict mode, Spring Boot checks that the schema matches the entities, but it does not create the tables automatically.
 
 The script drops and recreates the project tables, then inserts a demo user and a demo rental. Demo credentials:
 
@@ -164,6 +175,10 @@ MAIL_FROM=no-reply@chatop.local
 
 The application imports this file automatically through Spring Boot configuration.
 
+The application version shown by `/api/health` comes from the Maven project version in `pom.xml` when the application is built or run through Maven. For a release, update the `<version>` value in `pom.xml`, for example `1.0.0`, then create the matching GitHub release/tag. `APP_VERSION` is only a fallback when build information is not available.
+
+You usually do not need to put `JPA_DDL_AUTO`, `HIBERNATE_BOOT_ALLOW_JDBC_METADATA_ACCESS`, `DB_INITIALIZATION_FAIL_TIMEOUT`, `DB_CONNECTION_TIMEOUT_MS`, or `SPRING_JPA_DATABASE_PLATFORM` in `.env`. Their defaults are chosen so the API starts even if MySQL is stopped.
+
 ## Mail Configuration
 
 Mail settings are used to send a notification email when a user sends a message about a rental.
@@ -205,6 +220,10 @@ Home page:
 http://localhost:9001
 ```
 
+Home page preview:
+
+![ChâTop API home page](docs/images/home-page.png)
+
 Health check:
 
 ```text
@@ -215,9 +234,42 @@ Expected response:
 
 ```json
 {
-  "status": "OK"
+  "status": "OK",
+  "application": {
+    "name": "Châtop API",
+    "status": "OK",
+    "version": "0.0.1-SNAPSHOT",
+    "timestamp": "2026-07-13T10:00:00Z"
+  },
+  "database": {
+    "status": "OK",
+    "version": "MySQL 8.4.10",
+    "timestamp": "2026-07-13T10:00:00Z"
+  }
 }
 ```
+
+If the API is running but the database check fails, the global status becomes `DEGRADED`, the database status becomes `DOWN`, the database version is `null`, and the database timestamp is the instant of the failed check.
+
+Database schema check:
+
+```text
+http://localhost:9001/api/health/schema
+```
+
+Expected response when the required tables and columns are present:
+
+```json
+{
+  "status": "OK",
+  "missing": [],
+  "timestamp": "2026-07-13T10:00:00Z"
+}
+```
+
+If MySQL is running but the imported schema is incomplete, the status becomes `INVALID` and `missing` lists the missing tables or columns, for example `USERS` or `RENTALS.owner_id`. If MySQL is unavailable, the status becomes `DOWN`.
+
+The home page checks `/api/health` first, then `/api/health/schema` when the database is reachable. If the database is unavailable, only the database status check button is shown. If the database is reachable but the schema is incomplete, only the database schema check button is shown. When the API, database, and schema are all OK, the manual check buttons are hidden.
 
 ## Swagger / OpenAPI
 

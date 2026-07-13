@@ -83,7 +83,49 @@ class SecurityConfigTest {
         mockMvc.perform(get("/"))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("ChâTop API")))
-            .andExpect(content().string(containsString("/swagger-ui.html")));
+            .andExpect(content().string(containsString("/swagger-ui.html")))
+            .andExpect(content().string(containsString("/api/health")))
+            .andExpect(content().string(containsString("target=\"_blank\"")))
+            .andExpect(content().string(containsString("Check database status")))
+            .andExpect(content().string(containsString("Check database schema")))
+            .andExpect(content().string(containsString("/js/home-status.js")))
+            .andExpect(content().string(containsString("API status:")));
+    }
+
+    @Test
+    void healthEndpointReturnsApplicationAndDatabaseStatus() throws Exception {
+        mockMvc.perform(get("/api/health"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").exists())
+            .andExpect(jsonPath("$.application.name", is("Châtop API")))
+            .andExpect(jsonPath("$.application.status", is("OK")))
+            .andExpect(jsonPath("$.application.version").exists())
+            .andExpect(jsonPath("$.application.timestamp").exists())
+            .andExpect(jsonPath("$.database.status").exists())
+            .andExpect(jsonPath("$.database.timestamp").exists());
+    }
+
+    @Test
+    void schemaHealthEndpointIsServedWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/api/health/schema"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").exists())
+            .andExpect(jsonPath("$.missing").exists())
+            .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void homeStatusScriptIsServedWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/js/home-status.js"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("getJson('/api/health')")))
+            .andExpect(content().string(containsString("getJson('/api/health/schema')")))
+            .andExpect(content().string(containsString("database schema invalid")))
+            .andExpect(content().string(containsString("setCheckButtonsHidden(true)")))
+            .andExpect(content().string(containsString("setDatabaseStatusButtonHidden(true)")))
+            .andExpect(content().string(containsString("setSchemaButtonHidden(true)")))
+            .andExpect(content().string(containsString("addEventListener('click', checkStatus)")))
+            .andExpect(content().string(containsString("API OK, database unavailable")));
     }
 
     @Test

@@ -11,6 +11,7 @@ import lombok.Data;
 public class SystemProperties {
 
     private String name;
+    private String version;
     private String status;
     private String healthPath;
     private String healthStatus;

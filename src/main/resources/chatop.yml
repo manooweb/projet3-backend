@@ -33,6 +33,7 @@ chatop:
     version: v1
   system:
     name: Châtop API
+    version: ${APP_VERSION:0.0.1-SNAPSHOT}
     status: running
     health-path: /api/health
     health-status: OK

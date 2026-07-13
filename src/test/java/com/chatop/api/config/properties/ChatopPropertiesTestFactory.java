@@ -85,6 +85,7 @@ public final class ChatopPropertiesTestFactory {
     private static SystemProperties systemProperties() {
         SystemProperties properties = new SystemProperties();
         properties.setName("Châtop API");
+        properties.setVersion("0.0.1-SNAPSHOT");
         properties.setStatus("running");
         properties.setHealthPath("/api/health");
         properties.setHealthStatus("OK");
