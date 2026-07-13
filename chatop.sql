@@ -66,7 +66,7 @@ VALUES (
   'Demo rental',
   75,
   1200,
-  '/api/uploads/rentals/online-house-rental-sites.jpg',
+  'http://localhost:9001/api/uploads/rentals/online-house-rental-sites.jpg',
   'A demo rental available after importing the database script.',
   1,
   CURRENT_TIMESTAMP,
