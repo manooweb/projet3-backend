@@ -166,6 +166,10 @@ JWT_EXPIRATION_SECONDS=86400
 JWT_COOKIE_SECURE=false
 JWT_COOKIE_SAME_SITE=Lax
 
+SWAGGER_DEMO_USER_NAME=Demo User
+SWAGGER_DEMO_USER_EMAIL=demo@chatop.com
+SWAGGER_DEMO_USER_PASSWORD=password
+
 MAIL_HOST=localhost
 MAIL_PORT=1025
 MAIL_SMTP_AUTH=false
@@ -174,6 +178,8 @@ MAIL_FROM=no-reply@chatop.local
 ```
 
 The application imports this file automatically through Spring Boot configuration.
+
+The `SWAGGER_DEMO_USER_*` values only configure the example request bodies shown in Swagger UI for authentication endpoints. They should match the demo user inserted by `chatop.sql` if you want the default Swagger payload to work immediately after importing the database.
 
 The application version shown by `/api/health` comes from the Maven project version in `pom.xml` when the application is built or run through Maven. For a release, update the `<version>` value in `pom.xml`, for example `1.0.0`, then create the matching GitHub release/tag. `APP_VERSION` is only a fallback when build information is not available.
 

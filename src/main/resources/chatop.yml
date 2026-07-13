@@ -31,6 +31,10 @@ chatop:
 
       <a href="/" target="_self">🏠 API home</a>
     version: v1
+    demo-user:
+      name: ${SWAGGER_DEMO_USER_NAME:}
+      email: ${SWAGGER_DEMO_USER_EMAIL:}
+      password: ${SWAGGER_DEMO_USER_PASSWORD:}
   system:
     name: Châtop API
     version: ${APP_VERSION:0.0.1-SNAPSHOT}

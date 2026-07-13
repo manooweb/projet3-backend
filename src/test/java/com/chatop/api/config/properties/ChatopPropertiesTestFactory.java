@@ -25,6 +25,7 @@ public final class ChatopPropertiesTestFactory {
             mailProperties(),
             rentalMessageMailProperties(),
             openApiProperties(),
+            swaggerDemoUserProperties(),
             systemProperties(),
             responseMessagesProperties(),
             errorMessagesProperties()
@@ -78,6 +79,15 @@ public final class ChatopPropertiesTestFactory {
         properties.setTitle("Châtop API");
         properties.setDescription("Backend REST API for the Châtop project.");
         properties.setVersion("v1");
+
+        return properties;
+    }
+
+    private static SwaggerDemoUserProperties swaggerDemoUserProperties() {
+        SwaggerDemoUserProperties properties = new SwaggerDemoUserProperties();
+        properties.setName("Demo User");
+        properties.setEmail("demo@chatop.com");
+        properties.setPassword("password");
 
         return properties;
     }

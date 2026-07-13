@@ -13,6 +13,7 @@ public class ChatopProperties {
     private final MailProperties mail;
     private final RentalMessageMailProperties rentalMessageMail;
     private final OpenApiProperties openApi;
+    private final SwaggerDemoUserProperties swaggerDemoUser;
     private final SystemProperties system;
     private final ResponseMessagesProperties responses;
     private final ErrorMessagesProperties errors;
