@@ -344,10 +344,25 @@ password: password
 
 ## Demo Frontend
 
-The demo frontend is a separate Angular application. It must be started from its own project folder and configured to call this backend API.
+The demo frontend is a separate Angular application:
+
+- [manooweb/projet3-frontend](https://github.com/manooweb/projet3-frontend)
+
+For API demonstrations, use the frontend `main` branch. It is connected to this backend API.
+
+The original Mockoon-based frontend starter should be kept on a separate backup branch if it is still needed. Mockoon is not required for the connected API demonstration branch.
 
 For local testing, the backend API base URL is:
 
 ```text
 http://localhost:9001/api
+```
+
+The frontend installation and run commands are documented in its own README.
+
+Demo credentials after importing `chatop.sql`:
+
+```text
+email: demo@chatop.com
+password: password
 ```
