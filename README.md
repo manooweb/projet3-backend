@@ -81,6 +81,30 @@ source /tmp/chatop.sql;
 exit;
 ```
 
+Useful Docker commands after the demo:
+
+```bash
+docker stop chatop-mysql
+docker start chatop-mysql
+```
+
+Stopping the container keeps the database files in the `chatop_mysql_data` volume. This is also the simplest way to test the application behavior when the database is unavailable.
+
+To remove the container while keeping the database volume:
+
+```bash
+docker stop chatop-mysql
+docker rm chatop-mysql
+```
+
+To remove both the container and the database data:
+
+```bash
+docker stop chatop-mysql
+docker rm chatop-mysql
+docker volume rm chatop_mysql_data
+```
+
 ### Scenario 2: Local MySQL Server
 
 Connect to MySQL with an administrator account:
