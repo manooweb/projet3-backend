@@ -317,6 +317,31 @@ The CSRF endpoint returns `204 No Content` and creates the readable `XSRF-TOKEN`
 
 If you skip `GET /api/auth/csrf`, the first `POST /api/auth/login` or `POST /api/auth/register` can fail because the browser did not have a CSRF token yet. In that case, retrying the same request after the CSRF cookie has been created may work, but calling `/api/auth/csrf` first is the predictable flow.
 
+## Bruno Manual Testing
+
+A Bruno collection is available for manual API testing from Bruno UI:
+
+```text
+bruno/chatop-api
+```
+
+Open this folder as a Bruno collection, select the `Local` environment, then run
+the requests against the local backend on `http://localhost:9001`.
+
+The collection covers the authentication, rentals, messages and user endpoints.
+It is intended as a local manual testing aid, not as an automated CI test suite.
+
+Authentication uses the same cookie-based flow as the application. The
+collection pre-request script initializes the CSRF cookie when needed and sends
+the `X-XSRF-TOKEN` header automatically for unsafe methods.
+
+Demo credentials after importing `chatop.sql`:
+
+```text
+email: demo@chatop.com
+password: password
+```
+
 ## Demo Frontend
 
 The demo frontend is a separate Angular application. It must be started from its own project folder and configured to call this backend API.
