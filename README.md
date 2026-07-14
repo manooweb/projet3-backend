@@ -12,7 +12,7 @@ Common requirements:
 Database requirements depend on the setup you choose:
 
 - Scenario 1: Docker, if you want to run MySQL in a container
-- Scenario 2: MySQL 8, if you want to use an existing local MySQL server
+- Scenario 2: MySQL 9.7, if you want to use an existing local MySQL server
 
 ## Database Setup
 
@@ -58,7 +58,7 @@ If you override `RENTAL_UPLOADS_DIR`, copy this image into the configured folder
 
 ### Scenario 1: MySQL With Docker
 
-Start a MySQL 8 container:
+Start a MySQL 9.7 container:
 
 ```bash
 docker run --name chatop-mysql \
@@ -68,7 +68,7 @@ docker run --name chatop-mysql \
   -e MYSQL_USER=chatop_user \
   -e MYSQL_PASSWORD=chatop_password \
   -p 3306:3306 \
-  -d mysql:8.4
+  -d mysql:9.7
 ```
 
 This command creates a development container named `chatop-mysql` and stores database files in the `chatop_mysql_data` Docker volume.
@@ -249,7 +249,7 @@ Expected response:
   },
   "database": {
     "status": "OK",
-    "version": "MySQL 8.4.10",
+    "version": "MySQL 9.7.1",
     "timestamp": "2026-07-13T10:00:00Z"
   }
 }

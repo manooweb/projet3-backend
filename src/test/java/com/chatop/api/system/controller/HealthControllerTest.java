@@ -53,7 +53,7 @@ class HealthControllerTest {
         when(connection.isValid(1)).thenReturn(true);
         when(connection.getMetaData()).thenReturn(metaData);
         when(metaData.getDatabaseProductName()).thenReturn("MySQL");
-        when(metaData.getDatabaseProductVersion()).thenReturn("8.4.10");
+        when(metaData.getDatabaseProductVersion()).thenReturn("9.7.1");
 
         HealthResponse response = healthController.health();
 
@@ -63,7 +63,7 @@ class HealthControllerTest {
         assertThat(response.application().version()).isEqualTo("1.2.3");
         assertThat(response.application().timestamp()).isEqualTo(BUILD_TIME);
         assertThat(response.database().status()).isEqualTo("OK");
-        assertThat(response.database().version()).isEqualTo("MySQL 8.4.10");
+        assertThat(response.database().version()).isEqualTo("MySQL 9.7.1");
         assertThat(response.database().timestamp()).isNotNull();
     }
 
