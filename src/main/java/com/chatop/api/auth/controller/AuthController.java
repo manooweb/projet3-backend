@@ -28,7 +28,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -61,23 +60,21 @@ public class AuthController {
      * @return a success response and an authentication cookie
      */
     @Operation(summary = "Register a user", description = "Creates a user account and starts an authenticated session.")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "201",
-            description = "User registered",
-            content = @Content(schema = @Schema(implementation = AuthResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Validation error or email already exists",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Unexpected server error",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        )
-    })
+    @ApiResponse(
+        responseCode = "201",
+        description = "User registered",
+        content = @Content(schema = @Schema(implementation = AuthResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Validation error or email already exists",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Unexpected server error",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return authenticatedResponse(authService.register(request), HttpStatus.CREATED);
@@ -90,28 +87,26 @@ public class AuthController {
      * @return a success response and an authentication cookie
      */
     @Operation(summary = "Log in a user", description = "Authenticates a user and starts an authenticated session.")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "User authenticated",
-            content = @Content(schema = @Schema(implementation = AuthResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Validation error",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "401",
-            description = "Invalid credentials",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Unexpected server error",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        )
-    })
+    @ApiResponse(
+        responseCode = "200",
+        description = "User authenticated",
+        content = @Content(schema = @Schema(implementation = AuthResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Validation error",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "401",
+        description = "Invalid credentials",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Unexpected server error",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return authenticatedResponse(authService.login(request), HttpStatus.OK);
@@ -128,23 +123,21 @@ public class AuthController {
         description = "Returns the public profile of the currently authenticated user.",
         security = @SecurityRequirement(name = COOKIE_AUTH_SECURITY_SCHEME)
     )
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "Authenticated user profile",
-            content = @Content(schema = @Schema(implementation = AuthenticatedUserResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "401",
-            description = "Authentication is required",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Unexpected server error",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        )
-    })
+    @ApiResponse(
+        responseCode = "200",
+        description = "Authenticated user profile",
+        content = @Content(schema = @Schema(implementation = AuthenticatedUserResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "401",
+        description = "Authentication is required",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Unexpected server error",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @GetMapping("/me")
     public AuthenticatedUserResponse me(@Parameter(hidden = true) Authentication authentication) {
         return authService.me(authentication);
@@ -175,28 +168,26 @@ public class AuthController {
         description = "Clears the authentication cookie for the current client.",
         security = @SecurityRequirement(name = COOKIE_AUTH_SECURITY_SCHEME)
     )
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "User logged out",
-            content = @Content(schema = @Schema(implementation = AuthResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "401",
-            description = "Authentication is required",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "CSRF token is missing or invalid",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Unexpected server error",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        )
-    })
+    @ApiResponse(
+        responseCode = "200",
+        description = "User logged out",
+        content = @Content(schema = @Schema(implementation = AuthResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "401",
+        description = "Authentication is required",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "403",
+        description = "CSRF token is missing or invalid",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Unexpected server error",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @PostMapping("/logout")
     public ResponseEntity<AuthResponse> logout() {
         return ResponseEntity.ok()

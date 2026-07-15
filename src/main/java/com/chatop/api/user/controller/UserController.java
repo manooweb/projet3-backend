@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -42,28 +41,26 @@ public class UserController {
      * @return the user's public information
      */
     @Operation(summary = "Get user", description = "Returns a user's public profile.")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "User found",
-            content = @Content(schema = @Schema(implementation = UserResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "401",
-            description = "Authentication is required",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "User not found",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Unexpected server error",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        )
-    })
+    @ApiResponse(
+        responseCode = "200",
+        description = "User found",
+        content = @Content(schema = @Schema(implementation = UserResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "401",
+        description = "Authentication is required",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "404",
+        description = "User not found",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Unexpected server error",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @GetMapping("/{id}")
     public UserResponse findById(@Parameter(description = "User ID") @PathVariable Integer id) {
         return userService.findById(id);

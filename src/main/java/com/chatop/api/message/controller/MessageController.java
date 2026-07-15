@@ -22,7 +22,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -49,33 +48,31 @@ public class MessageController {
      * @return a success response once the message has been created
      */
     @Operation(summary = "Send message", description = "Sends a message from the authenticated user to a rental owner.")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "201",
-            description = "Message sent",
-            content = @Content(schema = @Schema(implementation = MessageResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Validation error, invalid user ID or invalid rental ID",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "401",
-            description = "Authentication is required",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "CSRF token is missing or invalid",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Unexpected server error",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-        )
-    })
+    @ApiResponse(
+        responseCode = "201",
+        description = "Message sent",
+        content = @Content(schema = @Schema(implementation = MessageResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Validation error, invalid user ID or invalid rental ID",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "401",
+        description = "Authentication is required",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "403",
+        description = "CSRF token is missing or invalid",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Unexpected server error",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public MessageResponse create(
