@@ -23,7 +23,7 @@ spring:
     properties:
       hibernate:
         boot:
-          allow_jdbc_metadata_access: ${HIBERNATE_BOOT_ALLOW_JDBC_METADATA_ACCESS:false}
+          "[allow_jdbc_metadata_access]": ${HIBERNATE_BOOT_ALLOW_JDBC_METADATA_ACCESS:false}
   web:
     error:
       include-stacktrace: never
