@@ -68,7 +68,7 @@ class AuthControllerTest {
                       "password": "password"
                     }
                     """))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
                 .string(HttpHeaders.SET_COOKIE, containsString("CHATOP_AUTH=jwt-token")))
             .andExpect(jsonPath("$.message", is("Authentication successful")))

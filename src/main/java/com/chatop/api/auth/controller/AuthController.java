@@ -3,6 +3,7 @@ package com.chatop.api.auth.controller;
 import static com.chatop.api.config.OpenApiConfig.COOKIE_AUTH_SECURITY_SCHEME;
 
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -62,7 +63,7 @@ public class AuthController {
     @Operation(summary = "Register a user", description = "Creates a user account and starts an authenticated session.")
     @ApiResponses({
         @ApiResponse(
-            responseCode = "200",
+            responseCode = "201",
             description = "User registered",
             content = @Content(schema = @Schema(implementation = AuthResponse.class))
         ),
@@ -79,7 +80,7 @@ public class AuthController {
     })
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return authenticatedResponse(authService.register(request));
+        return authenticatedResponse(authService.register(request), HttpStatus.CREATED);
     }
 
     /**
@@ -113,7 +114,7 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return authenticatedResponse(authService.login(request));
+        return authenticatedResponse(authService.login(request), HttpStatus.OK);
     }
 
     /**
@@ -203,8 +204,8 @@ public class AuthController {
             .body(new AuthResponse(responses.getLogoutSuccessful()));
     }
 
-    private ResponseEntity<AuthResponse> authenticatedResponse(String token) {
-        return ResponseEntity.ok()
+    private ResponseEntity<AuthResponse> authenticatedResponse(String token, HttpStatus status) {
+        return ResponseEntity.status(status)
             .header(HttpHeaders.SET_COOKIE, jwtCookieService.createAuthenticationCookie(token).toString())
             .body(new AuthResponse(responses.getAuthenticationSuccessful()));
     }

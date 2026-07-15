@@ -131,7 +131,7 @@ class RentalControllerTest {
                 .with(jwt().jwt(token -> token
                     .subject("test@example.com")
                     .claim("userId", 1))))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.message", is("Rental created !")));
 
         verify(rentalService).create(any(CreateRentalRequest.class), nullable(Authentication.class));

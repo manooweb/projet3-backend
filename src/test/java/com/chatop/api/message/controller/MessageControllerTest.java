@@ -50,7 +50,7 @@ class MessageControllerTest {
                 .with(jwt().jwt(token -> token
                     .subject("test@example.com")
                     .claim("userId", 2))))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.message", is("Message send with success")));
 
         verify(messageService).create(any(CreateMessageRequest.class), nullable(Authentication.class));

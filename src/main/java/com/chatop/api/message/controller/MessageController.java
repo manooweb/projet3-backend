@@ -2,10 +2,12 @@ package com.chatop.api.message.controller;
 
 import static com.chatop.api.config.OpenApiConfig.COOKIE_AUTH_SECURITY_SCHEME;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.chatop.api.exception.dto.ApiErrorResponse;
@@ -49,7 +51,7 @@ public class MessageController {
     @Operation(summary = "Send message", description = "Sends a message from the authenticated user to a rental owner.")
     @ApiResponses({
         @ApiResponse(
-            responseCode = "200",
+            responseCode = "201",
             description = "Message sent",
             content = @Content(schema = @Schema(implementation = MessageResponse.class))
         ),
@@ -75,6 +77,7 @@ public class MessageController {
         )
     })
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public MessageResponse create(
         @Valid @RequestBody CreateMessageRequest request,
         @Parameter(hidden = true) Authentication authentication
